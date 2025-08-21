@@ -4,19 +4,23 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useRawMaterials } from '@/hooks/useRawMaterials';
 import { ConfirmationModal } from './ConfirmationModal';
-
+ interface CraftFormData {
+    [materialId: string]: number;
+  }
 export const CraftForm = () => {
   const { materials } = useRawMaterials();
-  const [formData, setFormData] = useState(null);
+  const [formData, setFormData] = useState<CraftFormData | null>(null);
   const methods = useForm({
 
-    defaultValues: materials.reduce((acc, material) => {
+    defaultValues: materials.reduce<Record<string, number>>((acc, material) => {
       acc[material.id] = 0;
       return acc;
     }, {})
   });
 
-  const onSubmit = (data) => {
+ 
+
+  const onSubmit = (data: CraftFormData) => {
     console.log("Form Submitted:", data);
     setFormData(data);
   };
