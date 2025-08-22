@@ -1,51 +1,74 @@
+import { useState } from 'react'; // <-- 1. Importar o useState
 import { useForm, FormProvider } from 'react-hook-form';
-import { FormFieldGamified } from './FormFieldGamified';
-import { Button } from '@/components/ui/button';
-import { useState } from 'react';
 import { useRawMaterials } from '@/hooks/useRawMaterials';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BagStyleSelect, BagStyle } from './BagStyleSelect';
+import { FormSection } from './FormSection';
 import { ConfirmationModal } from './ConfirmationModal';
- interface CraftFormData {
-    [materialId: string]: number;
-  }
-export const CraftForm = () => {
-  const { materials } = useRawMaterials();
-  const [formData, setFormData] = useState<CraftFormData | null>(null);
-  const methods = useForm({
 
-    defaultValues: materials.reduce<Record<string, number>>((acc, material) => {
-      acc[material.id] = 0;
-      return acc;
-    }, {})
+
+type FullFormData = {
+  style: string;
+  primary: Record<string, { quantity: number }>;
+  secondary: Record<string, { quantity: number }>;
+  extra: Record<string, { quantity: number }>;
+};
+
+export const CraftForm = () => {
+  const { craftState } = useRawMaterials();
+
+  const [modalData, setModalData] = useState<FullFormData | null>(null);
+
+  const methods = useForm<FullFormData>({
+    defaultValues: {
+      style: BagStyle.Tote,
+
+    }
   });
 
- 
 
-  const onSubmit = (data: CraftFormData) => {
-    console.log("Form Submitted:", data);
-    setFormData(data);
+  const onSubmit = (data: FullFormData) => {
+    console.log("Formulário Final:", data);
+    setModalData(data);
   };
 
   return (
+
     <>
       <FormProvider {...methods}>
         <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {materials.map((material) => (
-              <FormFieldGamified key={material.id} material={material} />
-            ))}
-          </div>
+          <BagStyleSelect />
+
+          <h2 className="text-lg font-semibold">2. Matérias-Primas</h2>
+          <Tabs defaultValue="primary" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="primary">Principal</TabsTrigger>
+              <TabsTrigger value="secondary">Secundários</TabsTrigger>
+              <TabsTrigger value="extra">Extras</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="primary" className="mt-6">
+              <FormSection category="primary" items={craftState.primary} />
+            </TabsContent>
+            <TabsContent value="secondary" className="mt-6">
+              <FormSection category="secondary" items={craftState.secondary} />
+            </TabsContent>
+            <TabsContent value="extra" className="mt-6">
+              <FormSection category="extra" items={craftState.extra} />
+            </TabsContent>
+          </Tabs>
+
           <div className="flex justify-end">
-            <Button size="lg" type="submit">
-              Calcular e Criar Bolsa
-            </Button>
+            <Button size="lg" type="submit">Calcular e Criar</Button>
           </div>
         </form>
       </FormProvider>
 
       <ConfirmationModal
-        isOpen={!!formData}
-        onClose={() => setFormData(null)}
-        data={formData}
+        isOpen={!!modalData}
+        data={modalData}
+        onClose={() => setModalData(null)}
       />
     </>
   );

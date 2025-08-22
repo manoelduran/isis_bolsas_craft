@@ -1,46 +1,59 @@
-import type { RawMaterial } from "@/types";
+
+import type { CraftingFormState } from "@/types";
 import { formatCurrency } from "./utils";
 
-interface CraftData {
-  [key: string]: number;
+type FormData = {
+  style: string;
+  primary: Record<string, { quantity: number }>;
+  secondary: Record<string, { quantity: number }>;
+  extra: Record<string, { quantity: number }>;
 }
 
-export const generateCraftCsv = (craftData: CraftData, materials: RawMaterial[]) => {
-  const headers = ['Materia_Prima', 'Custo_Unitario', 'Quantidade', 'Subtotal'];
-  
-  const materialMap = new Map(materials.map(m => [m.id, m]));
+export const generateCraftCsv = (formData: FormData, craftState: CraftingFormState) => {
+  const headers = ['Categoria', 'Materia_Prima', 'Custo_Unitario', 'Unidade', 'Quantidade', 'Subtotal'];
+  let rows: string[][] = [];
 
-  const rows = Object.entries(craftData)
-    .filter(([, quantity]) => quantity > 0)
-    .map(([id, quantity]) => {
-      const material = materialMap.get(id);
-      if (!material) return null;
-      
-      const subtotal = material.cost * quantity;
-      return [
-        material.name,
-        formatCurrency(material.cost),
-        quantity,
-        formatCurrency(subtotal)
-      ];
-    }).filter(Boolean) as string[][];
+  rows.push(['Modelo da Bolsa', formData.style, '', '', '', '']);
+  rows.push([]);
 
-  const totalCost = rows.reduce((acc, row) => {
-    // Extrai o valor numérico da string de moeda
-    const value = parseFloat(row[3].replace('R$', '').replace('.', '').replace(',', '.').trim());
-    return acc + value;
-  }, 0);
-  
-  rows.push(['', '', 'CUSTO TOTAL', formatCurrency(totalCost)]);
+  let totalCost = 0;
+
+  for (const categoryKey in formData) {
+    if (categoryKey === 'style') continue;
+
+    const categoryName = categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1);
+    const items = formData[categoryKey as keyof Omit<FormData, 'style'>];
+
+    for (const itemId in items) {
+      const { quantity } = items[itemId];
+      if (quantity > 0) {
+        const itemData = craftState[categoryKey as keyof CraftingFormState][itemId];
+        const subtotal = itemData.cost * quantity;
+        totalCost += subtotal;
+
+        rows.push([
+          categoryName,
+          itemData.name,
+          formatCurrency(itemData.cost),
+          itemData.unity,
+          String(quantity),
+          formatCurrency(subtotal)
+        ]);
+      }
+    }
+  }
+
+  rows.push([]);
+  rows.push(['', '', '', '', 'CUSTO TOTAL', formatCurrency(totalCost)]);
 
   let csvContent = "data:text/csv;charset=utf-8," 
     + [headers, ...rows].map(e => e.join(",")).join("\n");
 
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
   const timestamp = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
-  link.setAttribute("download", `craft_isis_bolsas_${timestamp}.csv`);
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `craft_${formData.style.replace(/\s+/g, '_')}_${timestamp}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
