@@ -1,4 +1,3 @@
-
 import type { CraftingFormState } from "@/types";
 import { formatCurrency } from "./utils";
 

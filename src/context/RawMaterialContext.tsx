@@ -1,4 +1,3 @@
-
 import { createContext, useState, useMemo, type ReactNode } from 'react';
 import { initialCraftState } from '@/lib/formStructure';
 import { produce } from 'immer'; // immer ajuda a atualizar estados aninhados facilmente
