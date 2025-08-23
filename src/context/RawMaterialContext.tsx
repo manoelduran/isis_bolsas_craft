@@ -1,10 +1,10 @@
 import { createContext, useState, useMemo, type ReactNode } from 'react';
-import { initialCraftState } from '@/lib/formStructure';
-import { produce } from 'immer'; // immer ajuda a atualizar estados aninhados facilmente
-import type { CraftingFormState } from '@/types';
+import { initialMaterialsState } from '@/lib/formStructure';
+import { produce } from 'immer';
+import type { MaterialsState } from '@/types';
 
 interface RawMaterialContextType {
-  craftState: CraftingFormState;
+  materialsState: MaterialsState;
   updateMaterialCosts: (costs: { id: string; cost: number; unity?: string }[]) => void;
   areCostsLoaded: boolean;
 }
@@ -12,35 +12,32 @@ interface RawMaterialContextType {
 export const RawMaterialContext = createContext<RawMaterialContextType | undefined>(undefined);
 
 export const RawMaterialProvider = ({ children }: { children: ReactNode }) => {
-  const [craftState, setCraftState] = useState<CraftingFormState>(initialCraftState);
+  const [materialsState, setMaterialsState] = useState<MaterialsState>(initialMaterialsState);
 
   const areCostsLoaded = useMemo(() => {
-    return Object.values(craftState).some(category => 
+    return Object.values(materialsState).some(category => 
       Object.values(category).some(item => (item as { cost: number }).cost > 0)
     );
-  }, [craftState]);
+  }, [materialsState]);
 
   const updateMaterialCosts = (costs: { id: string; cost: number; unity?: string }[]) => {
     const costMap = new Map(costs.map(c => [c.id, { cost: c.cost, unity: c.unity }]));
 
-    const newState = produce(craftState, draft => {
+    const newState = produce(materialsState, draft => {
       costMap.forEach(({ cost, unity }, id) => {
-        for (const category of Object.keys(draft) as Array<keyof CraftingFormState>) {
+        for (const category of Object.keys(draft) as Array<keyof MaterialsState>) {
           if (draft[category][id]) {
             draft[category][id].cost = cost;
-            if (unity) {
-              draft[category][id].unity = unity;
-            }
+            if (unity) draft[category][id].unity = unity;
           }
         }
       });
     });
-
-    setCraftState(newState);
+    setMaterialsState(newState);
   };
 
   return (
-    <RawMaterialContext.Provider value={{ craftState, updateMaterialCosts, areCostsLoaded }}>
+    <RawMaterialContext.Provider value={{ materialsState, updateMaterialCosts: updateMaterialCosts, areCostsLoaded }}>
       {children}
     </RawMaterialContext.Provider>
   );

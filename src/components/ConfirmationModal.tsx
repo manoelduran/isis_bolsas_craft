@@ -1,116 +1,137 @@
 import { useMemo } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { useFormContext, Controller } from 'react-hook-form';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useRawMaterials } from '@/hooks/useRawMaterials';
 import { formatCurrency } from "@/lib/utils";
-import { generateCraftCsv } from "@/lib/csvGenerator";
-import type { CraftItem } from '@/types';
-
-
-type FinalFormData = {
-  style: string;
-  primary: Record<string, { quantity: number }>;
-  secondary: Record<string, { quantity: number }>;
-  extra: Record<string, { quantity: number }>;
-} | null;
+import type { BagForm, MaterialDetails } from '@/types';
+import { ScrollArea } from './ui/scroll-area';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  data: FinalFormData;
 }
 
 
-interface ProcessedItem extends CraftItem {
+interface ProcessedItem extends MaterialDetails {
   id: string;
-  category: string;
+  quantity: number;
   subtotal: number;
 }
 
-export function ConfirmationModal({ isOpen, onClose, data }: Props) {
+export function ConfirmationModal({ isOpen, onClose }: Props) {
+  const { watch, control } = useFormContext<BagForm>();
+  const { materialsState } = useRawMaterials();
+  const formData = watch();
 
-  const { craftState } = useRawMaterials();
-
-
-  const { processedItems, totalCost } = useMemo(() => {
-    if (!data) return { processedItems: [], totalCost: 0 };
-
-    const items: ProcessedItem[] = [];
+const { processedItems, totalCost } = useMemo(() => {
+    if (!formData) return { processedItems: [], totalCost: 0 };
+    
     let runningTotal = 0;
+    const items: ProcessedItem[] = [];
+    const categories: Array<keyof Omit<BagForm, 'style' | 'dimensions' | 'profit_percentage' | 'taxes'>> = ['primary', 'secondary', 'extra'];
 
-    Object.entries(data).forEach(([categoryKey, categoryData]) => {
-      if (categoryKey === 'style') return;
+    categories.forEach(categoryKey => {
+      const categoryItems = formData[categoryKey];
+      if (categoryItems) {
+        Object.entries(categoryItems).forEach(([itemId, itemData]) => {
+          if (itemData.quantity > 0) {
+            const fullItemData = materialsState[categoryKey][itemId];
+            const subtotal = fullItemData.cost * itemData.quantity;
+            runningTotal += subtotal;
 
-      Object.entries(categoryData).forEach(([itemId, item]) => {
-        if (item.quantity > 0) {
-          const fullItemData = craftState[categoryKey as keyof typeof craftState][itemId];
-          const subtotal = fullItemData.cost * item.quantity;
-          runningTotal += subtotal;
-
-          items.push({
-            ...fullItemData,
-            id: itemId,
-            category: categoryKey,
-            quantity: item.quantity,
-            subtotal,
-          });
-        }
-      });
+            items.push({ 
+                ...fullItemData, 
+                id: itemId, 
+                quantity: itemData.quantity, 
+                subtotal 
+            });
+          }
+        });
+      }
     });
+    
 
     return { processedItems: items, totalCost: runningTotal };
-  }, [data, craftState]);
+  }, [formData, materialsState]);
 
-  if (!data) return null;
-
-  const handleCraft = () => {
-    generateCraftCsv(data, craftState);
-    onClose();
-  };
-
+  const profitPercentage = watch('profit_percentage') || 0;
+  const taxes = watch('taxes') || 0;
+  const profitAmount = totalCost * (profitPercentage / 100);
+  const costWithProfit = totalCost + profitAmount;
+  const finalPriceWithTaxes = (costWithProfit * (taxes / 100)) + costWithProfit;
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Confirmação do Craft</DialogTitle>
-          <p className="text-muted-foreground pt-2">
-            Resumo para o modelo: <span className="font-semibold text-primary">{data.style}</span>
-          </p>
+          <DialogTitle>Resumo Final e Preço</DialogTitle>
+          <p className="text-muted-foreground pt-2">Modelo: <span className="font-semibold text-primary">{formData.style}</span></p>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <ScrollArea className="h-96 w-full rounded-md border p-4">
+           <ScrollArea className="h-72 w-full rounded-md border p-4">
+            <h3 className="mb-4 font-semibold text-center">Itens Utilizados</h3>
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Item</th>
-                  <th className="text-right p-2">Quantidade</th>
-                  <th className="text-right p-2">Custo Unitário</th>
-                  <th className="text-right p-2">Subtotal</th>
-                </tr>
-              </thead>
-              <tbody>
-                {processedItems.map(item => (
-                  <tr key={item.id} className="border-b">
-                    <td className="p-2 font-medium">{item.name}</td>
-                    <td className="text-right p-2">{item.quantity} {item.unity}</td>
-                    <td className="text-right p-2">{formatCurrency(item.cost)}</td>
-                    <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal)}</td>
-                  </tr>
-                ))}
-              </tbody>
+                <thead>
+                    <tr className="border-b">
+                        <th className="text-left p-2">Item</th>
+                        <th className="text-right p-2">Quantidade</th>
+                        <th className="text-right p-2">Custo Unitário</th>
+                        <th className="text-right p-2">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {processedItems.length > 0 ? (
+                        processedItems.map(item => (
+                            <tr key={item.id} className="border-b">
+                                <td className="p-2 font-medium">{item.name}</td>
+                                <td className="text-right p-2">{item.quantity} {item.unity}</td>
+                                <td className="text-right p-2">{formatCurrency(item.cost)}</td>
+                                <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal)}</td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan={4} className="text-center text-muted-foreground p-4">Nenhum material adicionado.</td>
+                        </tr>
+                    )}
+                </tbody>
             </table>
           </ScrollArea>
-          <div className="text-right text-2xl font-bold mt-4">
-            <span>Custo Total: </span>
-            <span className="text-primary">{formatCurrency(totalCost)}</span>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4 pt-4">
+            <div>
+              <Label htmlFor="profit">Margem de Lucro (%)</Label>
+              <Controller name="profit_percentage" control={control}
+                render={({ field }) => (
+                  <Input {...field} id="profit" type="text" inputMode="decimal" placeholder="0"
+                    onChange={(e) => field.onChange(parseFloat(e.target.value.replace(',', '.')) || 0)}
+                  />
+                )}
+              />
+            </div>
+            <div>
+              <Label htmlFor="taxes">Impostos (%)</Label>
+              <Controller name="taxes" control={control}
+                render={({ field }) => (
+                  <Input {...field} id="taxes" type="text" inputMode="decimal" placeholder="0"
+                    onChange={(e) => field.onChange(parseFloat(e.target.value.replace(',', '.')) || 0)}
+                  />
+                )}
+              />
+            </div>
+          </div>
+          <div className="space-y-2 rounded-lg bg-muted/50 p-4">
+            <div className="flex justify-between items-center text-lg"><span>Custo Total de Produção:</span><span className="font-semibold">{formatCurrency(totalCost)}</span></div>
+            <div className="flex justify-between items-center text-lg"><span>Lucro ({profitPercentage}%):</span><span className="font-semibold text-green-600">{formatCurrency(profitAmount)}</span></div>
+            <div className="flex justify-between items-center text-xl font-bold border-t pt-2 mt-2"><span>Preço de Venda (sem impostos):</span><span>{formatCurrency(costWithProfit)}</span></div>
+            <div className="flex justify-between items-center text-xl font-bold border-t pt-2 mt-2"><span>Preço Final (com impostos de {taxes}%):</span><span className="text-primary">{formatCurrency(finalPriceWithTaxes)}</span></div>
           </div>
         </div>
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Voltar</Button>
-          </DialogClose>
-          <Button onClick={handleCraft}>Confirmar e Gerar CSV</Button>
+          <Button variant="outline" type="button" onClick={onClose}>Voltar</Button>
+          <Button type="submit">Confirmar e Salvar Bolsa</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
