@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useFormContext, Controller } from 'react-hook-form';
+import { useFormContext, Controller } from 'react-hook-form'; 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,12 +8,12 @@ import { useRawMaterials } from '@/hooks/useRawMaterials';
 import { formatCurrency } from "@/lib/utils";
 import type { BagForm, MaterialDetails } from '@/types';
 import { ScrollArea } from './ui/scroll-area';
+import { generateCraftCsv } from '@/lib/csvGenerator';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
-
 
 interface ProcessedItem extends MaterialDetails {
   id: string;
@@ -22,17 +22,21 @@ interface ProcessedItem extends MaterialDetails {
 }
 
 export function ConfirmationModal({ isOpen, onClose }: Props) {
-  const { watch, control } = useFormContext<BagForm>();
+  const { watch, control, handleSubmit } = useFormContext<BagForm>(); 
   const { materialsState } = useRawMaterials();
   const formData = watch();
 
-const { processedItems, totalCost } = useMemo(() => {
+  const handleFinalSubmit = (data: BagForm) => {
+      console.log("Submetendo e gerando CSV com os dados:", data);
+      generateCraftCsv(data, materialsState);
+      onClose();
+  };
+
+  const { processedItems, totalCost } = useMemo(() => {
     if (!formData) return { processedItems: [], totalCost: 0 };
-    
     let runningTotal = 0;
     const items: ProcessedItem[] = [];
     const categories: Array<keyof Omit<BagForm, 'style' | 'dimensions' | 'profit_percentage' | 'taxes'>> = ['primary', 'secondary', 'extra'];
-
     categories.forEach(categoryKey => {
       const categoryItems = formData[categoryKey];
       if (categoryItems) {
@@ -41,19 +45,11 @@ const { processedItems, totalCost } = useMemo(() => {
             const fullItemData = materialsState[categoryKey][itemId];
             const subtotal = fullItemData.cost * itemData.quantity;
             runningTotal += subtotal;
-
-            items.push({ 
-                ...fullItemData, 
-                id: itemId, 
-                quantity: itemData.quantity, 
-                subtotal 
-            });
+            items.push({ ...fullItemData, id: itemId, quantity: itemData.quantity, subtotal });
           }
         });
       }
     });
-    
-
     return { processedItems: items, totalCost: runningTotal };
   }, [formData, materialsState]);
 
@@ -131,7 +127,12 @@ const { processedItems, totalCost } = useMemo(() => {
         </div>
         <DialogFooter>
           <Button variant="outline" type="button" onClick={onClose}>Voltar</Button>
-          <Button type="submit">Confirmar e Salvar Bolsa</Button>
+          <Button 
+            type="button"
+            onClick={handleSubmit(handleFinalSubmit)}
+          >
+            Confirmar e Salvar Bolsa
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

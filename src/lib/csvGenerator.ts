@@ -8,11 +8,7 @@ import type { BagForm, MaterialsState } from "@/types";
   }
 
 export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsState) => {
-  // --- 1. PROCESSAMENTO E CÁLCULO DOS DADOS ---
-
-  // Primeiro, criamos uma lista de materiais utilizados e calculamos o custo total.
   let totalCost = 0;
-
 
   const usedMaterials: UsedMaterial[] = [];
   

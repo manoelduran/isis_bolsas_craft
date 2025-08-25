@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BagStyleSelect, BagStyle } from './BagStyleSelect';
 import { FormSection } from './FormSection';
 import { ConfirmationModal } from './ConfirmationModal';
-import { DimensionInput } from './DimensionInput'; 
+import { DimensionInput } from './DimensionInput';
 import type { BagForm } from '@/types';
 
 export const CraftForm = () => {
@@ -23,11 +23,6 @@ export const CraftForm = () => {
     }
   });
 
-  const onFinalSubmit = (data: BagForm) => {
-    console.log("BOLSA COMPLETA PARA SALVAR:", data);
-    setIsModalOpen(false);
-  };
-
   const [activeTab, setActiveTab] = useState('primary'); 
   const [searchTerm, setSearchTerm] = useState('');
   const filteredItems = useMemo(() => {
@@ -42,7 +37,7 @@ export const CraftForm = () => {
   return (
     <>
      <FormProvider {...methods}>
-        <form onSubmit={methods.handleSubmit(onFinalSubmit)} className="space-y-8">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div className="md:col-span-2">
               <BagStyleSelect />
