@@ -101,7 +101,7 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
               <Label htmlFor="profit">Margem de Lucro (%)</Label>
               <Controller name="profit_percentage" control={control}
                 render={({ field }) => (
-                  <Input {...field} id="profit" type="text" inputMode="decimal" placeholder="0"
+                  <Input {...field} id="profit" type="text" inputMode="decimal" placeholder="0" className='mt-2'
                     onChange={(e) => field.onChange(parseFloat(e.target.value.replace(',', '.')) || 0)}
                   />
                 )}
@@ -111,7 +111,7 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
               <Label htmlFor="taxes">Impostos (%)</Label>
               <Controller name="taxes" control={control}
                 render={({ field }) => (
-                  <Input {...field} id="taxes" type="text" inputMode="decimal" placeholder="0"
+                  <Input {...field} id="taxes" type="text" inputMode="decimal" placeholder="0" className='mt-2'
                     onChange={(e) => field.onChange(parseFloat(e.target.value.replace(',', '.')) || 0)}
                   />
                 )}
