@@ -18,12 +18,12 @@ export const CraftForm = () => {
     defaultValues: {
       style: BagStyle.Tote,
       dimensions: '',
-      profit_percentage: 0,
-      taxes: 0,
+      profit_percentage: '0',
+      taxes: '0',
     }
   });
 
-  const [activeTab, setActiveTab] = useState('primary'); 
+  const [activeTab, setActiveTab] = useState('primary');
   const [searchTerm, setSearchTerm] = useState('');
   const filteredItems = useMemo(() => {
     if (!searchTerm) return materialsState;

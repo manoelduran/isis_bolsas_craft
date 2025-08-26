@@ -13,9 +13,9 @@ export interface MaterialsState {
 export interface BagForm {
   style: string;
   dimensions: string;
-  profit_percentage: number;
-  taxes: number;
-  primary: Record<string, { quantity: number; }>;
-  secondary: Record<string, { quantity: number; }>;
-  extra: Record<string, { quantity: number; }>;
+  profit_percentage: string | number;
+  taxes: string | number;
+  primary: Record<string, { quantity: string | number; }>;
+  secondary: Record<string, { quantity: string | number; }>;
+  extra: Record<string, { quantity: string | number; }>;
 }

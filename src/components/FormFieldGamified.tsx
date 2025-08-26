@@ -16,7 +16,7 @@ interface Props {
 export const FormFieldGamified = ({ category, itemId, itemData }: Props) => {
   const { control, watch } = useFormContext();
   const quantityFieldName = `${category}.${itemId}.quantity`;
-  const quantity = watch(quantityFieldName) || 0;
+  const quantity = parseFloat(String(watch(quantityFieldName))) || 0;
   const subtotal = quantity * itemData.cost;
 
   return (
@@ -31,12 +31,23 @@ export const FormFieldGamified = ({ category, itemId, itemData }: Props) => {
         <div>
           <Label htmlFor={quantityFieldName}>Quantidade</Label>
           <div className="relative mt-2">
-            <Controller name={quantityFieldName} control={control} defaultValue={0}
+         <Controller
+              name={quantityFieldName}
+              control={control}
+              defaultValue={"0"}
               render={({ field }) => (
-                <Input {...field} id={quantityFieldName} type="text" inputMode="decimal" className="pr-14" placeholder="0"
+                <Input
+                  {...field}
+                  id={quantityFieldName}
+                  type="text"
+                  inputMode="decimal"
+                  className="pr-14"
+                  placeholder="0"
                   onChange={(e) => {
-                    const value = e.target.value.replace(',', '.');
-                    field.onChange(parseFloat(value) || 0);
+                    const value = e.target.value;
+                    if (/^(\d+([,.]\d*)?|[,.]\d*)?$/.test(value)) {
+                      field.onChange(value);
+                    }
                   }}
                 />
               )}

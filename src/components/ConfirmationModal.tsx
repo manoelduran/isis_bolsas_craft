@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useFormContext, Controller } from 'react-hook-form'; 
+import { useFormContext, Controller } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,14 +22,14 @@ interface ProcessedItem extends MaterialDetails {
 }
 
 export function ConfirmationModal({ isOpen, onClose }: Props) {
-  const { watch, control, handleSubmit } = useFormContext<BagForm>(); 
+  const { watch, control, handleSubmit } = useFormContext<BagForm>();
   const { materialsState } = useRawMaterials();
   const formData = watch();
 
   const handleFinalSubmit = (data: BagForm) => {
-      console.log("Submetendo e gerando CSV com os dados:", data);
-      generateCraftCsv(data, materialsState);
-      onClose();
+    console.log("Submetendo e gerando CSV com os dados:", data);
+    generateCraftCsv(data, materialsState);
+    onClose();
   };
 
   const { processedItems, totalCost } = useMemo(() => {
@@ -41,11 +41,12 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
       const categoryItems = formData[categoryKey];
       if (categoryItems) {
         Object.entries(categoryItems).forEach(([itemId, itemData]) => {
-          if (itemData.quantity > 0) {
+          const quantityAsNumber = parseFloat(String(itemData.quantity)) || 0;
+          if (quantityAsNumber > 0) {
             const fullItemData = materialsState[categoryKey][itemId];
-            const subtotal = fullItemData.cost * itemData.quantity;
+            const subtotal = fullItemData.cost * quantityAsNumber;
             runningTotal += subtotal;
-            items.push({ ...fullItemData, id: itemId, quantity: itemData.quantity, subtotal });
+            items.push({ ...fullItemData, id: itemId, quantity: quantityAsNumber, subtotal });
           }
         });
       }
@@ -53,12 +54,12 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
     return { processedItems: items, totalCost: runningTotal };
   }, [formData, materialsState]);
 
-  const profitPercentage = watch('profit_percentage') || 0;
-  const taxes = watch('taxes') || 0;
+  const profitPercentage = parseFloat(String(watch('profit_percentage'))) || 0;
+  const taxes = parseFloat(String(watch('taxes'))) || 0;
   const profitAmount = totalCost * (profitPercentage / 100);
   const costWithProfit = totalCost + profitAmount;
   const finalPriceWithTaxes = (costWithProfit * (taxes / 100)) + costWithProfit;
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl">
@@ -66,35 +67,35 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
           <DialogTitle>Resumo Final e Preço</DialogTitle>
           <p className="text-muted-foreground pt-2">Modelo: <span className="font-semibold text-primary">{formData.style}</span></p>
         </DialogHeader>
-           <ScrollArea className="h-72 w-full rounded-md border p-4">
-            <h3 className="mb-4 font-semibold text-center">Itens Utilizados</h3>
-            <table className="w-full text-sm">
-                <thead>
-                    <tr className="border-b">
-                        <th className="text-left p-2">Item</th>
-                        <th className="text-right p-2">Quantidade</th>
-                        <th className="text-right p-2">Custo Unitário</th>
-                        <th className="text-right p-2">Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {processedItems.length > 0 ? (
-                        processedItems.map(item => (
-                            <tr key={item.id} className="border-b">
-                                <td className="p-2 font-medium">{item.name}</td>
-                                <td className="text-right p-2">{item.quantity} {item.unity}</td>
-                                <td className="text-right p-2">{formatCurrency(item.cost)}</td>
-                                <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal)}</td>
-                            </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan={4} className="text-center text-muted-foreground p-4">Nenhum material adicionado.</td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-          </ScrollArea>
+        <ScrollArea className="h-72 w-full rounded-md border p-4">
+          <h3 className="mb-4 font-semibold text-center">Itens Utilizados</h3>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left p-2">Item</th>
+                <th className="text-right p-2">Quantidade</th>
+                <th className="text-right p-2">Custo Unitário</th>
+                <th className="text-right p-2">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {processedItems.length > 0 ? (
+                processedItems.map(item => (
+                  <tr key={item.id} className="border-b">
+                    <td className="p-2 font-medium">{item.name}</td>
+                    <td className="text-right p-2">{item.quantity} {item.unity}</td>
+                    <td className="text-right p-2">{formatCurrency(item.cost)}</td>
+                    <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal)}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4} className="text-center text-muted-foreground p-4">Nenhum material adicionado.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </ScrollArea>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4 pt-4">
             <div>
@@ -102,7 +103,12 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
               <Controller name="profit_percentage" control={control}
                 render={({ field }) => (
                   <Input {...field} id="profit" type="text" inputMode="decimal" placeholder="0" className='mt-2'
-                    onChange={(e) => field.onChange(parseFloat(e.target.value.replace(',', '.')) || 0)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (/^(\d+([,.]\d*)?|[,.]\d*)?$/.test(value)) {
+                        field.onChange(value);
+                      }
+                    }}
                   />
                 )}
               />
@@ -112,7 +118,12 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
               <Controller name="taxes" control={control}
                 render={({ field }) => (
                   <Input {...field} id="taxes" type="text" inputMode="decimal" placeholder="0" className='mt-2'
-                    onChange={(e) => field.onChange(parseFloat(e.target.value.replace(',', '.')) || 0)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (/^(\d+([,.]\d*)?|[,.]\d*)?$/.test(value)) {
+                        field.onChange(value);
+                      }
+                    }}
                   />
                 )}
               />
@@ -127,7 +138,7 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
         </div>
         <DialogFooter>
           <Button variant="outline" type="button" onClick={onClose}>Voltar</Button>
-          <Button 
+          <Button
             type="button"
             onClick={handleSubmit(handleFinalSubmit)}
           >
