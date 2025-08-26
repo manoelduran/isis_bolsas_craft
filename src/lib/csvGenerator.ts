@@ -3,6 +3,7 @@ interface UsedMaterial {
   id: string;
   name: string;
   quantity: number;
+  cost: number; 
   unity: string;
   subtotal: string;
 }
@@ -28,6 +29,7 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
             id: itemId,
             name: fullItemData.name,
             quantity: quantityAsNumber,
+            cost: fullItemData.cost,
             unity: fullItemData.unity,
             subtotal: subtotal.toFixed(2)
           });
@@ -54,12 +56,13 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
 
 
   rows.push(['--- Materiais Utilizados ---']);
-  rows.push(['id', 'name', 'quantity', 'unity', 'subtotal']);
+  rows.push(['id', 'name', 'quantity', 'cost', 'unity', 'subtotal']);
   usedMaterials.forEach(material => {
     rows.push([
       material.id,
       material.name,
       material.quantity,
+      material.cost.toFixed(2),
       material.unity,
       material.subtotal
     ]);
