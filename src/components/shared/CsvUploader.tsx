@@ -19,12 +19,29 @@ export function CsvUploader() {
         skipEmptyLines: true,
         complete: (results) => {
           try {
+            console.log("Dados brutos lidos pelo PapaParse:", results.data);
             const parsedData = results.data
-              .map((row: any) => ({
-                id: row.id,
-                cost: parseFloat(row.cost),
-              }))
-              .filter(item => item.id && !isNaN(item.cost));
+              .map((row: any) => {
+
+                if (!row.id || row.cost === undefined || row.cost === '') return null;
+
+
+                const costString = String(row.cost).replace(',', '.');
+
+
+                const costAsNumber = parseFloat(costString);
+
+                const finalCost = isNaN(costAsNumber) ? 0 : costAsNumber;
+
+                return {
+                  id: row.id,
+                  cost: finalCost,
+                  unity: row.unity || 'un'
+                };
+              })
+              .filter(item => item !== null);
+
+            console.log("Dados processados antes de atualizar o estado:", parsedData);
 
             if (parsedData.length === 0) {
               throw new Error("CSV inválido ou vazio. Verifique se as colunas 'id' e 'cost' existem.");
