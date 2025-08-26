@@ -1,32 +1,33 @@
 import type { BagForm, MaterialsState } from "@/types";
-  interface UsedMaterial {
-    id: string;
-    name: string;
-    quantity: number;
-    unity: string;
-    subtotal: string;
-  }
+interface UsedMaterial {
+  id: string;
+  name: string;
+  quantity: number;
+  unity: string;
+  subtotal: string;
+}
 
 export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsState) => {
   let totalCost = 0;
 
   const usedMaterials: UsedMaterial[] = [];
-  
+
   const categories: Array<keyof Omit<BagForm, 'style' | 'dimensions' | 'profit_percentage' | 'taxes'>> = ['primary', 'secondary', 'extra'];
-  
+
   categories.forEach(categoryKey => {
     const categoryItems = formData[categoryKey];
     if (categoryItems) {
       Object.entries(categoryItems).forEach(([itemId, itemData]) => {
-        if (itemData.quantity > 0) {
+        const quantityAsNumber = parseFloat(String(itemData.quantity)) || 0;
+        if (quantityAsNumber > 0) {
           const fullItemData = materialsState[categoryKey][itemId];
-          const subtotal = fullItemData.cost * itemData.quantity;
+          const subtotal = fullItemData.cost * quantityAsNumber;
           totalCost += subtotal;
 
           usedMaterials.push({
             id: itemId,
             name: fullItemData.name,
-            quantity: itemData.quantity,
+            quantity: quantityAsNumber,
             unity: fullItemData.unity,
             subtotal: subtotal.toFixed(2)
           });
@@ -36,11 +37,13 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
   });
 
 
-  const profitAmount = totalCost * (formData.profit_percentage / 100);
+  const profitAsNumber = parseFloat(String(formData.profit_percentage)) || 0;
+  const taxesAsNumber = parseFloat(String(formData.taxes)) || 0;
+  const profitAmount = totalCost * (profitAsNumber / 100);
   const costWithProfit = totalCost + profitAmount;
-  const finalPriceWithTaxes = (costWithProfit * (formData.taxes / 100)) + costWithProfit;
+  const finalPriceWithTaxes = (costWithProfit * (taxesAsNumber / 100)) + costWithProfit;
 
- 
+
 
   const rows: (string | number)[][] = [];
 
@@ -66,11 +69,11 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
 
   rows.push(['--- Resumo Financeiro ---']);
   rows.push(['custo_total', totalCost.toFixed(2)]);
-  rows.push(['profit_percentage', `${formData.profit_percentage}%`]);
+  rows.push(['profit_percentage', `${profitAsNumber}%`]);
   rows.push(['custo_total_com_lucro', costWithProfit.toFixed(2)]);
-  rows.push(['taxes', `${formData.taxes}%`]);
+  rows.push(['taxes', `${taxesAsNumber}%`]);
   rows.push(['custo_total_com_lucro_e_imposto', finalPriceWithTaxes.toFixed(2)]);
-  
+
 
 
   const csvContent = rows.map(e => e.join(",")).join("\n");
@@ -79,7 +82,7 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   const timestamp = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
-  
+
   link.setAttribute("href", url);
   link.setAttribute("download", `bolsa_${formData.style.replace(/\s+/g, '_')}_${timestamp}.csv`);
   document.body.appendChild(link);
