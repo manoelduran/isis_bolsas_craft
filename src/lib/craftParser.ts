@@ -41,11 +41,10 @@ export const parseCraftCsv = (csvString: string, materialsState: MaterialsState)
     }
 
     if (currentSection === 'materials') {
-      const [id, , , quantity, unity] = parts;
+      const [id, , , quantity] = parts;
       if (id && id !== 'id') {
         const quantityValue = quantity?.replace(/"/g, '') || '0';
 
-        // 3. Lógica de categorização corrigida e robusta.
         if (primaryIds.has(id)) {
           parsedData.primary![id] = { quantity: quantityValue };
         } else if (secondaryIds.has(id)) {

@@ -58,7 +58,7 @@ export function CsvUploader({ onFullCraftLoad, onCostListLoad }: Props) {
                 return {
                   id: row.id,
                   cost: isNaN(costAsNumber) ? 0 : costAsNumber,
-                  unity: row.unity || 'un'
+                  unity: row.unity || 'm'
                 };
               }).filter(item => item.id);
               onCostListLoad(costList);
