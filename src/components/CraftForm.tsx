@@ -32,7 +32,7 @@ export const CraftForm = () => {
     methods.reset(parsedData);
     console.log("Formulário populado com dados de craft para edição.", parsedData);
   };
-  const handleCostListLoad = (costs: { id: string; cost: number; unity?: string }[]) => {
+  const handleCostListLoad = (costs: { id: string; cost: number; unit?: string }[]) => {
     updateMaterialCosts(costs);
     console.log("Custos dos materiais atualizados para novo craft.");
   };

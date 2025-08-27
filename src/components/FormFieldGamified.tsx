@@ -24,7 +24,7 @@ export const FormFieldGamified = ({ category, itemId, itemData }: Props) => {
       <CardHeader>
         <CardTitle>{itemData.name}</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Custo: {formatCurrency(itemData.cost)} / {itemData.unity}
+          Custo: {formatCurrency(itemData.cost)} / {itemData.unit}
         </p>
       </CardHeader>
       <CardContent>
@@ -53,7 +53,7 @@ export const FormFieldGamified = ({ category, itemId, itemData }: Props) => {
               )}
             />
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-              <span className="text-muted-foreground sm:text-sm">{itemData.unity}</span>
+              <span className="text-muted-foreground sm:text-sm">{itemData.unit}</span>
             </div>
           </div>
         </div>

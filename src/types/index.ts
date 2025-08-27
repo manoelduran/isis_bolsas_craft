@@ -1,7 +1,7 @@
 export interface MaterialDetails {
   name: string;
   cost: number;
-  unity: string;
+  unit: string;
 }
 
 export interface MaterialsState {

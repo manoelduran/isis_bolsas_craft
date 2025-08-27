@@ -83,7 +83,7 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
                 processedItems.map(item => (
                   <tr key={item.id} className="border-b">
                     <td className="p-2 font-medium">{item.name}</td>
-                    <td className="text-right p-2">{item.quantity} {item.unity}</td>
+                    <td className="text-right p-2">{item.quantity} {item.unit}</td>
                     <td className="text-right p-2">{formatCurrency(item.cost)}</td>
                     <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal)}</td>
                   </tr>

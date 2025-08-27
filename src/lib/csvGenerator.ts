@@ -5,7 +5,7 @@ import { sanitizeForFilename } from "./utils";
 
 export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsState) => {
 
-  const usedMaterials: Array<{ id: string; name: string; cost: number; unity: string; quantity: number }> = [];
+  const usedMaterials: Array<{ id: string; name: string; cost: number; unit: string; quantity: number }> = [];
   const categories: Array<keyof Omit<BagForm, 'style' | 'dimensions' | 'profit_percentage' | 'taxes' | 'created_at'>> = ['primary', 'secondary', 'extra'];
 
   categories.forEach(categoryKey => {
@@ -20,7 +20,7 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
             name: fullItemData.name,
             cost: fullItemData.cost,
             quantity: quantityAsNumber,
-            unity: fullItemData.unity,
+            unit: fullItemData.unit,
           });
         }
       });
@@ -36,14 +36,14 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
   rows.push(['created_at', `"${formData.created_at}"`]);
   rows.push([]);
   rows.push(['--- Materiais Utilizados ---']);
-  rows.push(['id', 'name', 'cost', 'quantity', 'unity']);
+  rows.push(['id', 'name', 'cost', 'quantity', 'unit']);
   usedMaterials.forEach(material => {
     rows.push([
       material.id,
       `"${material.name}"`,
       material.cost.toFixed(2),
       material.quantity,
-      material.unity,
+      material.unit,
     ]);
   });
 

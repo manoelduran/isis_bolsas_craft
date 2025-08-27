@@ -9,7 +9,7 @@ import { useRawMaterials } from '@/hooks/useRawMaterials';
 
 interface Props {
   onFullCraftLoad: (data: Partial<BagForm>) =>  void;
-  onCostListLoad: (costs: { id: string; cost: number; unity?: string }[]) => void;
+  onCostListLoad: (costs: { id: string; cost: number; unit?: string }[]) => void;
 }
 
 export function CsvUploader({ onFullCraftLoad, onCostListLoad }: Props) {
@@ -58,7 +58,7 @@ export function CsvUploader({ onFullCraftLoad, onCostListLoad }: Props) {
                 return {
                   id: row.id,
                   cost: isNaN(costAsNumber) ? 0 : costAsNumber,
-                  unity: row.unity || 'm'
+                  unit: row.unit || 'm'
                 };
               }).filter(item => item.id);
               onCostListLoad(costList);

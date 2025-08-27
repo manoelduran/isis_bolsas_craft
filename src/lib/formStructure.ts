@@ -15,7 +15,7 @@ const createCategory = (names: string[]) => {
   names.forEach(name => {
     const id = toCamelCase(name);
     if (id && !category[id]) {
-      category[id] = { name, cost: 0, unity: 'un' };
+      category[id] = { name, cost: 0, unit: 'un' };
     }
   });
   return category;
