@@ -1,10 +1,7 @@
 import { CraftForm } from '@/components/CraftForm';
-import { CsvUploader } from '@/components/shared/CsvUploader';
-import { useRawMaterials } from '@/hooks/useRawMaterials';
 
 
 export const  CraftPage = () => {
-  const { areCostsLoaded } = useRawMaterials();
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -15,17 +12,7 @@ export const  CraftPage = () => {
         </p>
       </header>
       <main>
-        <section className="flex justify-center mb-12">
-          <CsvUploader />
-        </section>
-
-        {areCostsLoaded ? (
           <CraftForm />
-        ) : (
-          <div className="text-center p-10 border-2 border-dashed rounded-lg">
-            <p className="font-semibold text-muted-foreground">Aguardando arquivo de custos para montar o formulário...</p>
-          </div>
-        )}
       </main>
     </div>
   );

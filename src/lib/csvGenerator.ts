@@ -1,19 +1,12 @@
 import type { BagForm, MaterialsState } from "@/types";
-interface UsedMaterial {
-  id: string;
-  name: string;
-  quantity: number;
-  cost: number; 
-  unity: string;
-  subtotal: string;
-}
+import { sanitizeForFilename } from "./utils";
+
+
 
 export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsState) => {
-  let totalCost = 0;
 
-  const usedMaterials: UsedMaterial[] = [];
-
-  const categories: Array<keyof Omit<BagForm, 'style' | 'dimensions' | 'profit_percentage' | 'taxes'>> = ['primary', 'secondary', 'extra'];
+  const usedMaterials: Array<{ id: string; name: string; cost: number; unity: string; quantity: number }> = [];
+  const categories: Array<keyof Omit<BagForm, 'style' | 'dimensions' | 'profit_percentage' | 'taxes' | 'created_at'>> = ['primary', 'secondary', 'extra'];
 
   categories.forEach(categoryKey => {
     const categoryItems = formData[categoryKey];
@@ -22,16 +15,12 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
         const quantityAsNumber = parseFloat(String(itemData.quantity)) || 0;
         if (quantityAsNumber > 0) {
           const fullItemData = materialsState[categoryKey][itemId];
-          const subtotal = fullItemData.cost * quantityAsNumber;
-          totalCost += subtotal;
-
           usedMaterials.push({
             id: itemId,
             name: fullItemData.name,
-            quantity: quantityAsNumber,
             cost: fullItemData.cost,
+            quantity: quantityAsNumber,
             unity: fullItemData.unity,
-            subtotal: subtotal.toFixed(2)
           });
         }
       });
@@ -39,55 +28,42 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
   });
 
 
-  const profitAsNumber = parseFloat(String(formData.profit_percentage)) || 0;
-  const taxesAsNumber = parseFloat(String(formData.taxes)) || 0;
-  const profitAmount = totalCost * (profitAsNumber / 100);
-  const costWithProfit = totalCost + profitAmount;
-  const finalPriceWithTaxes = (costWithProfit * (taxesAsNumber / 100)) + costWithProfit;
-
-
-
   const rows: (string | number)[][] = [];
 
 
-  rows.push(['style', formData.style]);
-  rows.push(['dimensions', formData.dimensions]);
+  rows.push(['style', `"${formData.style}"`]);
+  rows.push(['dimensions', `"${formData.dimensions}"`]);
+  rows.push(['created_at', `"${formData.created_at}"`]);
   rows.push([]);
-
-
   rows.push(['--- Materiais Utilizados ---']);
-  rows.push(['id', 'name', 'quantity', 'cost', 'unity', 'subtotal']);
+  rows.push(['id', 'name', 'cost', 'quantity', 'unity']);
   usedMaterials.forEach(material => {
     rows.push([
       material.id,
-      material.name,
-      material.quantity,
+      `"${material.name}"`,
       material.cost.toFixed(2),
+      material.quantity,
       material.unity,
-      material.subtotal
     ]);
   });
+
   rows.push([]);
-
-
   rows.push(['--- Resumo Financeiro ---']);
-  rows.push(['custo_total', totalCost.toFixed(2)]);
-  rows.push(['profit_percentage', `${profitAsNumber}%`]);
-  rows.push(['custo_total_com_lucro', costWithProfit.toFixed(2)]);
-  rows.push(['taxes', `${taxesAsNumber}%`]);
-  rows.push(['custo_total_com_lucro_e_imposto', finalPriceWithTaxes.toFixed(2)]);
-
+  rows.push(['profit_percentage', formData.profit_percentage]);
+  rows.push(['taxes', formData.taxes]);
 
 
   const csvContent = rows.map(e => e.join(",")).join("\n");
-
   const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  const timestamp = new Date().toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-');
+
+  const sanitizedStyle = sanitizeForFilename(formData.style || 'bolsa_sem_nome');
+  const sanitizedDimensions = (formData.dimensions || 'sem_dimensoes').replace(/\s*x\s*/g, '_').replace(/[^a-z0-9_]/g, '');
+  const filename = `${sanitizedStyle}_${sanitizedDimensions}.csv`;
 
   link.setAttribute("href", url);
-  link.setAttribute("download", `bolsa_${formData.style.replace(/\s+/g, '_')}_${timestamp}.csv`);
+  link.setAttribute("download", filename);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

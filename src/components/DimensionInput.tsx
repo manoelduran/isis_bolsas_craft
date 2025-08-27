@@ -9,29 +9,20 @@ interface DimensionInputProps {
 }
 
 export const DimensionInput = ({ value, onChange, className }: DimensionInputProps) => {
-
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
   const [thickness, setThickness] = useState('');
 
-  useEffect(() => {
-    const parts = value ? value.split(' x ') : ['', '', ''];
-    setWidth(parts[0] || '');
-    setHeight(parts[1] || '');
-    setThickness(parts[2] || '');
-  }, [value]);
 
   useEffect(() => {
     const newDimensionString = `${width} x ${height} x ${thickness}`;
-
     if (newDimensionString !== value) {
       onChange(newDimensionString);
     }
   }, [width, height, thickness, onChange, value]);
 
   return (
-
-    <div className={cn("flex items-center w-[fit-cotent] rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2", className)}>
+    <div className={cn("flex items-center w-full rounded-md border border-input bg-background ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2", className)}>
       <Input
         type="text"
         inputMode="decimal"

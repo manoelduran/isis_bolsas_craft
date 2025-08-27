@@ -1,74 +1,96 @@
-import { useRawMaterials } from '@/hooks/useRawMaterials';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { parseCraftCsv } from '@/lib/craftParser';
+import type { BagForm } from '@/types';
+import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
-import { useState } from 'react';
+import { useRawMaterials } from '@/hooks/useRawMaterials';
 
-export function CsvUploader() {
-  const { updateMaterialCosts } = useRawMaterials();
-  const [message, setMessage] = useState('Nenhum arquivo selecionado.');
+interface Props {
+  onFullCraftLoad: (data: Partial<BagForm>) =>  void;
+  onCostListLoad: (costs: { id: string; cost: number; unity?: string }[]) => void;
+}
+
+export function CsvUploader({ onFullCraftLoad, onCostListLoad }: Props) {
+  const { materialsState } = useRawMaterials();
+  const [message, setMessage] = useState('Importe um template (.csv ou .xlsx)');
   const [isError, setIsError] = useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      setMessage(`Processando ${file.name}...`);
-      setIsError(false);
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          try {
-            console.log("Dados brutos lidos pelo PapaParse:", results.data);
-            const parsedData = results.data
-              .map((row: any) => {
+    if (!file) return;
 
-                if (!row.id || row.cost === undefined || row.cost === '') return null;
+    setMessage(`Processando ${file.name}...`);
+    setIsError(false);
+    const reader = new FileReader();
 
+    reader.onload = (e) => {
+      try {
+        const fileContent = e.target?.result;
+        if (!fileContent) throw new Error("Não foi possível ler o arquivo.");
 
-                const costString = String(row.cost).replace(',', '.');
+        let csvString: string;
+        if (file.name.endsWith('.xlsx')) {
+          const workbook = XLSX.read(fileContent, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          csvString = XLSX.utils.sheet_to_csv(worksheet);
+        } else {
+          csvString = fileContent as string;
+        }
 
+        if (csvString.trim().startsWith('style,')) {
+          console.log("Detectado: Arquivo de Craft Completo (para edição).");
+          const parsedData = parseCraftCsv(csvString, materialsState);
+          onFullCraftLoad(parsedData);
+        }
 
+        else if (csvString.trim().toLowerCase().startsWith('id,name,cost')) {
+          console.log("Detectado: Template de Custos (para novo craft).");
+          Papa.parse(csvString, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+              const costList = results.data.map((row: any) => {
+                const costString = String(row.cost || '0').replace(',', '.');
                 const costAsNumber = parseFloat(costString);
-
-                const finalCost = isNaN(costAsNumber) ? 0 : costAsNumber;
-
                 return {
                   id: row.id,
-                  cost: finalCost,
+                  cost: isNaN(costAsNumber) ? 0 : costAsNumber,
                   unity: row.unity || 'un'
                 };
-              })
-              .filter(item => item !== null);
-
-            console.log("Dados processados antes de atualizar o estado:", parsedData);
-
-            if (parsedData.length === 0) {
-              throw new Error("CSV inválido ou vazio. Verifique se as colunas 'id' e 'cost' existem.");
+              }).filter(item => item.id);
+              onCostListLoad(costList);
             }
-
-            updateMaterialCosts(parsedData);
-            setMessage(`${parsedData.length} custos carregados com sucesso!`);
-          } catch (error) {
-            setIsError(true);
-            setMessage(error instanceof Error ? error.message : "Ocorreu um erro ao processar o arquivo.");
-          }
-        },
-        error: (error) => {
-          setIsError(true);
-          setMessage(`Erro no parse do CSV: ${error.message}`);
+          });
+        } else {
+          throw new Error("Formato de arquivo não reconhecido.");
         }
-      });
+        
+        setMessage(`"${file.name}" carregado com sucesso!`);
+        setIsError(false);
+
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Erro ao processar o arquivo.");
+        setIsError(true);
+      }
+    };
+
+    if (file.name.endsWith('.xlsx')) {
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.readAsText(file);
     }
   };
 
   return (
-    <div className="grid w-full max-w-sm items-center gap-1.5 p-4 border-2 border-dashed rounded-lg">
-      <Label htmlFor="csv-upload">Importar CSV de Custos</Label>
-      <Input id="csv-upload" type="file" accept=".csv" onChange={handleFileChange} />
-      <p className={`text-sm mt-2 ${isError ? 'text-red-500' : 'text-muted-foreground'}`}>
-        {message}
-      </p>
-    </div>
+      <div className="grid w-full max-w-sm items-center gap-1.5 p-4 border-2 border-dashed rounded-lg">
+          <Label htmlFor="csv-upload">Importar Arquivo de Craft</Label>
+          <Input id="csv-upload" type="file" accept=".csv, .xlsx" onChange={handleFileChange} />
+          <p className={`text-sm mt-2 ${isError ? 'text-red-500' : 'text-muted-foreground'}`}>
+              {message}
+          </p>
+      </div>
   );
 }

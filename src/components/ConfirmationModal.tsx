@@ -36,7 +36,7 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
     if (!formData) return { processedItems: [], totalCost: 0 };
     let runningTotal = 0;
     const items: ProcessedItem[] = [];
-    const categories: Array<keyof Omit<BagForm, 'style' | 'dimensions' | 'profit_percentage' | 'taxes'>> = ['primary', 'secondary', 'extra'];
+    const categories: Array<keyof Omit<BagForm, 'style' | 'dimensions' | 'profit_percentage' | 'taxes' | 'created_at'>> = ['primary', 'secondary', 'extra'];
     categories.forEach(categoryKey => {
       const categoryItems = formData[categoryKey];
       if (categoryItems) {
