@@ -6,7 +6,7 @@ import { sanitizeForFilename } from "./utils";
 export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsState) => {
 
   const usedMaterials: Array<{ id: string; name: string; cost: number; unit: string; quantity: number }> = [];
-  const categories: Array<keyof Omit<BagForm, 'style' | 'dimensions' | 'profit_percentage' | 'taxes' | 'created_at'>> = ['primary', 'secondary', 'extra'];
+  const categories: Array<keyof Omit<BagForm, 'style' | 'dimensions' | 'profit_percentage' | 'taxes' | 'created_at' | 'bag_quantity'>> = ['primary', 'secondary', 'extra'];
 
   categories.forEach(categoryKey => {
     const categoryItems = formData[categoryKey];
