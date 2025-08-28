@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRawMaterials } from '@/hooks/useRawMaterials';
 import { formatCurrency } from "@/lib/utils";
 import type { BagForm, MaterialDetails } from '@/types';
@@ -27,121 +28,169 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
   const formData = watch();
 
   const handleFinalSubmit = (data: BagForm) => {
-    console.log("Submetendo e gerando CSV com os dados:", data);
     generateCraftCsv(data, materialsState);
     onClose();
   };
 
-  const { processedItems, totalCost } = useMemo(() => {
-    if (!formData) return { processedItems: [], totalCost: 0 };
-    let runningTotal = 0;
-    const items: ProcessedItem[] = [];
-    const categories: Array<keyof Omit<BagForm, 'style' | 'dimensions' | 'profit_percentage' | 'taxes' | 'created_at'>> = ['primary', 'secondary', 'extra'];
-    categories.forEach(categoryKey => {
-      const categoryItems = formData[categoryKey];
+  const { baseItems, extraItems, baseCostPerBag, extraCost } = useMemo(() => {
+    if (!formData) return { baseItems: [], extraItems: [], baseCostPerBag: 0, extraCost: 0 };
+
+    let runningBaseCost = 0;
+    let runningExtraCost = 0;
+    const bItems: ProcessedItem[] = [];
+    const eItems: ProcessedItem[] = [];
+
+
+    ['primary', 'secondary'].forEach(categoryKey => {
+      const categoryItems = formData[categoryKey as 'primary' | 'secondary'];
       if (categoryItems) {
         Object.entries(categoryItems).forEach(([itemId, itemData]) => {
           const quantityAsNumber = parseFloat(String(itemData.quantity)) || 0;
           if (quantityAsNumber > 0) {
-            const fullItemData = materialsState[categoryKey][itemId];
+            const fullItemData = materialsState[categoryKey as 'primary' | 'secondary'][itemId];
             const subtotal = fullItemData.cost * quantityAsNumber;
-            runningTotal += subtotal;
-            items.push({ ...fullItemData, id: itemId, quantity: quantityAsNumber, subtotal });
+            runningBaseCost += subtotal;
+            bItems.push({ ...fullItemData, id: itemId, quantity: quantityAsNumber, subtotal });
           }
         });
       }
     });
-    return { processedItems: items, totalCost: runningTotal };
+
+    // Processa custos extras
+    const extraCategoryItems = formData.extra;
+    if (extraCategoryItems) {
+      Object.entries(extraCategoryItems).forEach(([itemId, itemData]) => {
+        const quantityAsNumber = parseFloat(String(itemData.quantity)) || 0;
+        if (quantityAsNumber > 0) {
+          const fullItemData = materialsState.extra[itemId];
+          const subtotal = fullItemData.cost * quantityAsNumber;
+          runningExtraCost += subtotal;
+          eItems.push({ ...fullItemData, id: itemId, quantity: quantityAsNumber, subtotal });
+        }
+      });
+    }
+
+    return { baseItems: bItems, extraItems: eItems, baseCostPerBag: runningBaseCost, extraCost: runningExtraCost };
   }, [formData, materialsState]);
 
+  const bagQuantity = parseInt(String(watch('bag_quantity'))) || 1;
   const profitPercentage = parseFloat(String(watch('profit_percentage'))) || 0;
   const taxes = parseFloat(String(watch('taxes'))) || 0;
-  const profitAmount = totalCost * (profitPercentage / 100);
-  const costWithProfit = totalCost + profitAmount;
+
+  const totalMaterialCost = baseCostPerBag * bagQuantity;
+  const grandTotalCost = totalMaterialCost + extraCost;
+  const profitAmount = grandTotalCost * (profitPercentage / 100);
+  const costWithProfit = grandTotalCost + profitAmount;
   const finalPriceWithTaxes = (costWithProfit * (taxes / 100)) + costWithProfit;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Resumo Final e Preço</DialogTitle>
           <p className="text-muted-foreground pt-2">Modelo: <span className="font-semibold text-primary">{formData.style}</span></p>
         </DialogHeader>
-        <ScrollArea className="h-72 w-full rounded-md border p-4">
-          <h3 className="mb-4 font-semibold text-center">Itens Utilizados</h3>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left p-2">Item</th>
-                <th className="text-right p-2">Quantidade</th>
-                <th className="text-right p-2">Custo Unitário</th>
-                <th className="text-right p-2">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {processedItems.length > 0 ? (
-                processedItems.map(item => (
-                  <tr key={item.id} className="border-b">
-                    <td className="p-2 font-medium">{item.name}</td>
-                    <td className="text-right p-2">{item.quantity} {item.unit}</td>
-                    <td className="text-right p-2">{formatCurrency(item.cost)}</td>
-                    <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal)}</td>
+
+        <Tabs defaultValue="materials" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="materials">Materiais da Bolsa</TabsTrigger>
+            <TabsTrigger value="extras">Custos Extras</TabsTrigger>
+          </TabsList>
+          <TabsContent value="materials" className="mt-4">
+            <ScrollArea className="h-60 w-full rounded-md border p-4">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2">Item</th>
+                    <th className="text-right p-2">Quantidade</th>
+                    <th className="text-right p-2">Custo Unitário</th>
+                    <th className="text-right p-2">Subtotal</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} className="text-center text-muted-foreground p-4">Nenhum material adicionado.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </ScrollArea>
+                </thead>
+                <tbody>
+                  {baseItems.length > 0 ? baseItems.map(item => (
+                    <tr key={item.id} className="border-b">
+                      <td className="p-2 font-medium">{item.name}</td>
+                      <td className="text-right p-2">{item.quantity} {item.unit}</td>
+                      <td className="text-right p-2">{formatCurrency(item.cost)}</td>
+                      <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal)}</td>
+                    </tr>
+                  )) : <tr><td colSpan={4} className="text-center p-4 text-muted-foreground">Nenhum material principal/secundário adicionado.</td></tr>}
+                </tbody>
+              </table>
+            </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="extras" className="mt-4">
+            <ScrollArea className="h-60 w-full rounded-md border p-4">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left p-2">Item</th>
+                    <th className="text-right p-2">Quantidade</th>
+                    <th className="text-right p-2">Custo Unitário</th>
+                    <th className="text-right p-2">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {extraItems.length > 0 ? extraItems.map(item => (
+                    <tr key={item.id} className="border-b">
+                      <td className="p-2 font-medium">{item.name}</td>
+                      <td className="text-right p-2">{item.quantity} {item.unit}</td>
+                      <td className="text-right p-2">{formatCurrency(item.cost)}</td>
+                      <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal)}</td>
+                    </tr>
+                  )) : <tr><td colSpan={4} className="text-center p-4 text-muted-foreground">Nenhum custo extra adicionado.</td></tr>}
+                </tbody>
+              </table>
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
+
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 pt-4">
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="profit">Margem de Lucro (%)</Label>
               <Controller name="profit_percentage" control={control}
-                render={({ field }) => (
-                  <Input {...field} id="profit" type="text" inputMode="decimal" placeholder="0" className='mt-2'
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (/^(\d+([,.]\d*)?|[,.]\d*)?$/.test(value)) {
-                        field.onChange(value);
-                      }
-                    }}
-                  />
-                )}
+                render={({ field }) => (<Input {...field} id="profit" type="text" inputMode="decimal" placeholder="0" className='mt-2' onChange={(e) => { const value = e.target.value; if (/^(\d+([,.]\d*)?|[,.]\d*)?$/.test(value)) { field.onChange(value); } }} />)}
               />
             </div>
             <div>
               <Label htmlFor="taxes">Impostos (%)</Label>
               <Controller name="taxes" control={control}
-                render={({ field }) => (
-                  <Input {...field} id="taxes" type="text" inputMode="decimal" placeholder="0" className='mt-2'
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (/^(\d+([,.]\d*)?|[,.]\d*)?$/.test(value)) {
-                        field.onChange(value);
-                      }
-                    }}
-                  />
-                )}
+                render={({ field }) => (<Input {...field} id="taxes" type="text" inputMode="decimal" placeholder="0" className='mt-2' onChange={(e) => { const value = e.target.value; if (/^(\d+([,.]\d*)?|[,.]\d*)?$/.test(value)) { field.onChange(value); } }} />)}
               />
             </div>
           </div>
-          <div className="space-y-2 rounded-lg bg-muted/50 p-4">
-            <div className="flex justify-between items-center text-lg"><span>Custo Total de Produção:</span><span className="font-semibold">{formatCurrency(totalCost)}</span></div>
-            <div className="flex justify-between items-center text-lg"><span>Lucro ({profitPercentage}%):</span><span className="font-semibold text-green-600">{formatCurrency(profitAmount)}</span></div>
-            <div className="flex justify-between items-center text-xl font-bold border-t pt-2 mt-2"><span>Preço de Venda (sem impostos):</span><span>{formatCurrency(costWithProfit)}</span></div>
-            <div className="flex justify-between items-center text-xl font-bold border-t pt-2 mt-2"><span>Preço Final (com impostos de {taxes}%):</span><span className="text-primary">{formatCurrency(finalPriceWithTaxes)}</span></div>
+
+          <div className="space-y-2 rounded-lg bg-muted/50 p-4 text-sm">
+            <div className="flex justify-between items-center gap-2">
+              <span>Custo por Bolsa (Materiais):</span><span className="font-semibold">{formatCurrency(baseCostPerBag)}</span>
+            <div>
+                <Controller name="bag_quantity" control={control}
+                  render={({ field }) => (
+                    <Input {...field} id="bag_quantity" type="text" inputMode="numeric" placeholder="Quantidade"
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^\d*$/.test(value)) { field.onChange(value); }
+                      }}
+                    />
+                  )}
+                />
+              </div>
+            </div>
+            <div className="flex justify-between items-center font-medium border-t pt-2 mt-2"><span>Custo Total dos Materiais:</span><span className="font-semibold">{formatCurrency(totalMaterialCost)}</span></div>
+            <div className="flex justify-between items-center"><span>(+) Custos Extras Fixos:</span><span className="font-semibold">{formatCurrency(extraCost)}</span></div>
+            <div className="flex justify-between items-center text-sm font-bold border-t pt-2 mt-2"><span>Custo Total de Produção:</span><span className="font-semibold">{formatCurrency(grandTotalCost)}</span></div>
+            <div className="flex justify-between items-center text-md"><span>(+) Lucro ({profitPercentage}%):</span><span className="font-semibold text-green-600">{formatCurrency(profitAmount)}</span></div>
+            <div className="flex justify-between items-center text-md font-bold border-t pt-2 mt-2"><span>Preço de Venda (sem impostos):</span><span>{formatCurrency(costWithProfit)}</span></div>
+            <div className="flex justify-between items-center text-md font-bold"><span>Preço Final (com impostos de {taxes}%):</span><span className="text-primary">{formatCurrency(finalPriceWithTaxes)}</span></div>
           </div>
         </div>
+
         <DialogFooter>
           <Button variant="outline" type="button" onClick={onClose}>Voltar</Button>
-          <Button
-            type="button"
-            onClick={handleSubmit(handleFinalSubmit)}
-          >
+          <Button type="button" onClick={handleSubmit(handleFinalSubmit)}>
             Confirmar e Salvar Bolsa
           </Button>
         </DialogFooter>

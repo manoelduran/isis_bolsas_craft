@@ -21,6 +21,7 @@ export const CraftForm = () => {
     defaultValues: {
       style: '',
       dimensions: '',
+      bag_quantity: '1',
       profit_percentage: 0,
       taxes: 0,
       created_at: new Date(),

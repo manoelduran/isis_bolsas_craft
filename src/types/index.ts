@@ -13,6 +13,7 @@ export interface MaterialsState {
 export interface BagForm {
   style: string;
   dimensions: string;
+  bag_quantity: string | number;
   profit_percentage: string | number;
   taxes: string | number;
   primary: Record<string, { quantity: string | number; }>;
