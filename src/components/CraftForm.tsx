@@ -11,6 +11,7 @@ import { CsvUploader } from './shared/CsvUploader';
 import { DimensionInput } from './DimensionInput';
 import type { BagForm, MaterialsState } from '@/types';
 import { generateCraftCsv } from '@/lib/csvGenerator';
+import { DimensionCalculator } from './DimensionCalculator';
 
 export const CraftForm = () => {
   const { materialsState, areCostsLoaded, updateMaterialCosts } = useRawMaterials();
@@ -71,7 +72,7 @@ export const CraftForm = () => {
           <form onSubmit={methods.handleSubmit(onFinalSubmit)} className="space-y-8">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
-              <div>
+              <div className='w-[300px]'>
                 <Label htmlFor="style">Nome da Bolsa</Label>
                 <Controller
                   name="style"
@@ -81,15 +82,24 @@ export const CraftForm = () => {
                   )}
                 />
               </div>
+
+               <div>
+                  <Label>Dimensões (cm)</Label>
+                   <div className='flex items-center justify-center mt-2 gap-2'>
+                  <Controller
+                    name="dimensions"
+                    control={methods.control}
+                    render={({ field }) => (
+                      <DimensionInput {...field} />
+                    )}
+                  />
+                   <DimensionCalculator />
+                </div>
+      
+              </div>
+
               <div>
-                <Label>Dimensões (cm)</Label>
-                <Controller
-                  name="dimensions"
-                  control={methods.control}
-                  render={({ field }) => (
-                    <DimensionInput {...field} className="mt-2" />
-                  )}
-                />
+
               </div>
             </div>
 
