@@ -16,7 +16,7 @@ import { DimensionCalculator } from './DimensionCalculator';
 export const CraftForm = () => {
   const { materialsState, areCostsLoaded, updateMaterialCosts } = useRawMaterials();
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [isFullCraftLoaded, setIsFullCraftLoaded] = useState(false);
 
   const methods = useForm<BagForm>({
     defaultValues: {
@@ -30,12 +30,19 @@ export const CraftForm = () => {
     }
   });
 
-  const handleFullCraftLoad = (parsedData: Partial<BagForm>) => {
-    methods.reset(parsedData);
-    console.log("Formulário populado com dados de craft para edição.", parsedData);
+  const handleFullCraftLoad = (data: { 
+    bagFormData: Partial<BagForm>, 
+    costList: { id: string, cost: number, unit: string }[] 
+  }) => {
+        updateMaterialCosts(data.costList);
+    methods.reset(data.bagFormData);
+    setIsFullCraftLoaded(true);
+    console.log("Formulário populado com dados de craft para edição.", data);
   };
   const handleCostListLoad = (costs: { id: string; cost: number; unit?: string }[]) => {
     updateMaterialCosts(costs);
+     setIsFullCraftLoaded(false);
+     methods.reset();
     console.log("Custos dos materiais atualizados para novo craft.");
   };
 
@@ -67,7 +74,7 @@ export const CraftForm = () => {
           onCostListLoad={handleCostListLoad}
         />
       </section>
-      {areCostsLoaded ? (
+      {(areCostsLoaded || isFullCraftLoaded) ?(
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onFinalSubmit)} className="space-y-8">
 

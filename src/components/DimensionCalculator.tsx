@@ -5,7 +5,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calculator, PlusCircle, Trash2 } from "lucide-react";
 
-// Define a "forma" de cada linha da nossa tabela
 type CalculationRow = {
   id: number;
   material: string;
@@ -15,22 +14,18 @@ type CalculationRow = {
 };
 
 export const DimensionCalculator = () => {
-  // Estado para armazenar todas as linhas da tabela
   const [rows, setRows] = useState<CalculationRow[]>([
     { id: Date.now(), material: '', width: '', height: '', thickness: '' }
   ]);
 
-  // Função para adicionar uma nova linha em branco
   const addRow = () => {
     setRows([...rows, { id: Date.now(), material: '', width: '', height: '', thickness: '' }]);
   };
 
-  // Função para remover uma linha específica pelo seu ID
   const removeRow = (id: number) => {
     setRows(rows.filter(row => row.id !== id));
   };
 
-  // Função para atualizar o valor de um campo em uma linha específica
   const updateRow = (id: number, field: keyof Omit<CalculationRow, 'id'>, value: string) => {
     setRows(rows.map(row => 
       row.id === id ? { ...row, [field]: value } : row
@@ -79,7 +74,6 @@ export const DimensionCalculator = () => {
               </TableHeader>
               <TableBody>
                 {rows.map((row) => {
-                  // Calcula o total em tempo real para cada linha
                   const total = 
                     (parseFloat(row.width) || 0) * (parseFloat(row.height) || 0) * (parseFloat(row.thickness) || 0);
                   

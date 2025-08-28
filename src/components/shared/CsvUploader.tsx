@@ -8,7 +8,10 @@ import Papa from 'papaparse';
 import { useRawMaterials } from '@/hooks/useRawMaterials';
 
 interface Props {
-  onFullCraftLoad: (data: Partial<BagForm>) =>  void;
+  onFullCraftLoad: (data: { 
+    bagFormData: Partial<BagForm>, 
+    costList: { id: string, cost: number, unit: string }[] 
+  }) => void;
   onCostListLoad: (costs: { id: string; cost: number; unit?: string }[]) => void;
 }
 
@@ -36,6 +39,10 @@ export function CsvUploader({ onFullCraftLoad, onCostListLoad }: Props) {
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
           csvString = XLSX.utils.sheet_to_csv(worksheet);
+          if (csvString.trim().startsWith('style,')) {
+          const parsedData = parseCraftCsv(csvString, materialsState);
+          onFullCraftLoad(parsedData);
+        } 
         } else {
           csvString = fileContent as string;
         }

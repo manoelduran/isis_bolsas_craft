@@ -1,7 +1,7 @@
 import type { BagForm, MaterialsState } from "@/types";
 
 
-export const parseCraftCsv = (csvString: string, materialsState: MaterialsState): Partial<BagForm> => {
+export const parseCraftCsv = (csvString: string, materialsState: MaterialsState): { bagFormData: Partial<BagForm>, costList: { id: string, cost: number, unit: string }[] } => {
   const lines = csvString.split('\n').map(line => line.trim());
 
   const parsedData: Partial<BagForm> = {
@@ -9,7 +9,7 @@ export const parseCraftCsv = (csvString: string, materialsState: MaterialsState)
     secondary: {},
     extra: {},
   };
-
+  const costList: { id: string, cost: number, unit: string }[] = [];
   const primaryIds = new Set(Object.keys(materialsState.primary));
   const secondaryIds = new Set(Object.keys(materialsState.secondary));
   const extraIds = new Set(Object.keys(materialsState.extra));
@@ -41,10 +41,17 @@ export const parseCraftCsv = (csvString: string, materialsState: MaterialsState)
     }
 
     if (currentSection === 'materials') {
-      const [id, , , quantity] = parts;
+      const [id, , cost, quantity, unit] = parts;
       if (id && id !== 'id') {
+        const costString = cost?.replace(/"/g, '').replace(',', '.') || '0';
+        const costAsNumber = parseFloat(costString);
         const quantityValue = quantity?.replace(/"/g, '') || '0';
-
+        const unitValue = unit?.replace(/"/g, '') || 'un';
+        costList.push({
+          id: id.trim(),
+          cost: isNaN(costAsNumber) ? 0 : costAsNumber,
+          unit: unitValue
+        });
         if (primaryIds.has(id)) {
           parsedData.primary![id] = { quantity: quantityValue };
         } else if (secondaryIds.has(id)) {
@@ -64,5 +71,5 @@ export const parseCraftCsv = (csvString: string, materialsState: MaterialsState)
     }
   });
 
-  return parsedData;
+  return { bagFormData: parsedData, costList };
 };

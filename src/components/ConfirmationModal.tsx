@@ -56,7 +56,6 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
       }
     });
 
-    // Processa custos extras
     const extraCategoryItems = formData.extra;
     if (extraCategoryItems) {
       Object.entries(extraCategoryItems).forEach(([itemId, itemData]) => {
