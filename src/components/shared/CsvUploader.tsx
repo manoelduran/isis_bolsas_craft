@@ -42,7 +42,7 @@ export function CsvUploader({ onFullCraftLoad, onCostListLoad }: Props) {
           if (csvString.trim().startsWith('style,')) {
           const parsedData = parseCraftCsv(csvString, materialsState);
           onFullCraftLoad(parsedData);
-        } 
+        }
         } else {
           csvString = fileContent as string;
         }
@@ -74,7 +74,7 @@ export function CsvUploader({ onFullCraftLoad, onCostListLoad }: Props) {
         } else {
           throw new Error("Formato de arquivo não reconhecido.");
         }
-        
+
         setMessage(`"${file.name}" carregado com sucesso!`);
         setIsError(false);
 

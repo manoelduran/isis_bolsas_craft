@@ -15,24 +15,58 @@ export const RawMaterialProvider = ({ children }: { children: ReactNode }) => {
   const [materialsState, setMaterialsState] = useState<MaterialsState>(initialMaterialsState);
 
   const areCostsLoaded = useMemo(() => {
-    return Object.values(materialsState).some(category => 
+    return Object.values(materialsState).some(category =>
       Object.values(category).some(item => (item as { cost: number }).cost > 0)
     );
   }, [materialsState]);
 
-  const updateMaterialCosts = (costs: { id: string; cost: number; unit?: string }[]) => {
+  // const updateMaterialCosts = (costs: { id: string; cost: number; unit?: string }[]) => {
+  //   const costMap = new Map(costs.map(c => [c.id, { cost: c.cost, unit: c.unit }]));
+
+  //   const newState = produce(materialsState, draft => {
+  //     costMap.forEach(({ cost, unit }, id) => {
+  //       for (const category of Object.keys(draft) as Array<keyof MaterialsState>) {
+  //         if (draft[category][id]) {
+  //           draft[category][id].cost = cost;
+  //           if (unit) draft[category][id].unit = unit;
+  //         }
+  //       }
+  //     });
+  //   });
+  //   setMaterialsState(newState);
+  // };
+
+   const updateMaterialCosts = (costs: { id: string; cost: number; unit?: string }[]) => {
     const costMap = new Map(costs.map(c => [c.id, { cost: c.cost, unit: c.unit }]));
 
     const newState = produce(materialsState, draft => {
-      costMap.forEach(({ cost, unit }, id) => {
-        for (const category of Object.keys(draft) as Array<keyof MaterialsState>) {
-          if (draft[category][id]) {
-            draft[category][id].cost = cost;
-            if (unit) draft[category][id].unit = unit;
+
+      for (const categoryKey of Object.keys(draft) as Array<keyof MaterialsState>) {
+
+        for (const itemId in draft[categoryKey]) {
+
+          const dataFromFile = costMap.get(itemId);
+
+          if (dataFromFile) {
+
+            draft[categoryKey][itemId].cost = dataFromFile.cost;
+            if (dataFromFile.unit) {
+              draft[categoryKey][itemId].unit = dataFromFile.unit;
+            }
+          } else {
+
+            if (draft[categoryKey][itemId].cost <= 0) {
+
+              if (categoryKey === 'primary' || categoryKey === 'secondary') {
+                draft[categoryKey][itemId].cost = 1;
+              }
+
+            }
           }
         }
-      });
+      }
     });
+
     setMaterialsState(newState);
   };
 

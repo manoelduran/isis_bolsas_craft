@@ -74,9 +74,9 @@ export const DimensionCalculator = () => {
               </TableHeader>
               <TableBody>
                 {rows.map((row) => {
-                  const total = 
+                  const total =
                     (parseFloat(row.width) || 0) * (parseFloat(row.height) || 0) * (parseFloat(row.thickness) || 0);
-                  
+
                   return (
                     <TableRow key={row.id}>
                       <TableCell>

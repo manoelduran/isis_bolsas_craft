@@ -1,6 +1,5 @@
 import { CraftForm } from '@/components/CraftForm';
 
-
 export const  CraftPage = () => {
 
   return (
