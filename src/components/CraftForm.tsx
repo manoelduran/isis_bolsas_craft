@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormSection } from './FormSection';
+import { ExtrasTable } from './ExtrasTable';
 import { ConfirmationModal } from './ConfirmationModal';
 import { CsvUploader } from './shared/CsvUploader';
 import { DimensionInput } from './DimensionInput';
@@ -30,19 +31,19 @@ export const CraftForm = () => {
     }
   });
 
-  const handleFullCraftLoad = (data: { 
-    bagFormData: Partial<BagForm>, 
-    costList: { id: string, cost: number, unit: string }[] 
+  const handleFullCraftLoad = (data: {
+    bagFormData: Partial<BagForm>,
+    costList: { id: string, cost: number, unit: string }[]
   }) => {
-        updateMaterialCosts(data.costList);
+    updateMaterialCosts(data.costList);
     methods.reset(data.bagFormData);
     setIsFullCraftLoaded(true);
     console.log("Formulário populado com dados de craft para edição.", data);
   };
   const handleCostListLoad = (costs: { id: string; cost: number; unit?: string }[]) => {
     updateMaterialCosts(costs);
-     setIsFullCraftLoaded(false);
-     methods.reset();
+    setIsFullCraftLoaded(false);
+    methods.reset();
     console.log("Custos dos materiais atualizados para novo craft.");
   };
 
@@ -74,7 +75,7 @@ export const CraftForm = () => {
           onCostListLoad={handleCostListLoad}
         />
       </section>
-      {(areCostsLoaded || isFullCraftLoaded) ?(
+      {(areCostsLoaded || isFullCraftLoaded) ? (
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onFinalSubmit)} className="space-y-8">
 
@@ -90,9 +91,9 @@ export const CraftForm = () => {
                 />
               </div>
 
-               <div>
-                  <Label>Dimensões (cm)</Label>
-                   <div className='flex items-center justify-center mt-2 gap-2'>
+              <div>
+                <Label>Dimensões (cm)</Label>
+                <div className='flex items-center justify-center mt-2 gap-2'>
                   <Controller
                     name="dimensions"
                     control={methods.control}
@@ -100,9 +101,9 @@ export const CraftForm = () => {
                       <DimensionInput {...field} />
                     )}
                   />
-                   <DimensionCalculator />
+                  <DimensionCalculator />
                 </div>
-      
+
               </div>
 
               <div>
@@ -118,12 +119,14 @@ export const CraftForm = () => {
                 <TabsTrigger value="extra">Extras</TabsTrigger>
               </TabsList>
               <div className="mt-4">
-                <Input
-                  type="text"
-                  placeholder={`Buscar em "${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}"...`}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                {activeTab !== 'extra' && (
+                  <Input
+                    type="text"
+                    placeholder={`Buscar em "${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}"...`}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                )}
               </div>
               <TabsContent value="primary" className="mt-6">
                 <FormSection category="primary" items={filteredItems.primary} />
@@ -132,7 +135,8 @@ export const CraftForm = () => {
                 <FormSection category="secondary" items={filteredItems.secondary} />
               </TabsContent>
               <TabsContent value="extra" className="mt-6">
-                <FormSection category="extra" items={filteredItems.extra} />
+                <ExtrasTable />
+                {/* <FormSection category="extra" items={filteredItems.extra} /> */}
               </TabsContent>
             </Tabs>
 

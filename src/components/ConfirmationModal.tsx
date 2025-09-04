@@ -62,9 +62,10 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
         const quantityAsNumber = parseFloat(String(itemData.quantity)) || 0;
         if (quantityAsNumber > 0) {
           const fullItemData = materialsState.extra[itemId];
-          const subtotal = fullItemData.cost * quantityAsNumber;
+          const costAsNumber = parseFloat(String(itemData.cost)) || 0;
+          const subtotal = costAsNumber * quantityAsNumber;
           runningExtraCost += subtotal;
-          eItems.push({ ...fullItemData, id: itemId, quantity: quantityAsNumber, subtotal });
+          eItems.push({ ...fullItemData, id: itemId,cost: costAsNumber, quantity: quantityAsNumber, subtotal });
         }
       });
     }
@@ -165,7 +166,7 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
           <div className="space-y-2 rounded-lg bg-muted/50 p-4 text-sm">
             <div className="flex justify-between items-center gap-2">
               <span>Custo por Bolsa (Materiais):</span><span className="font-semibold">{formatCurrency(baseCostPerBag)}</span>
-            <div>
+              <div>
                 <Controller name="bag_quantity" control={control}
                   render={({ field }) => (
                     <Input {...field} id="bag_quantity" type="text" inputMode="numeric" placeholder="Quantidade"
