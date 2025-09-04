@@ -72,7 +72,6 @@ export const ExtrasTable = () => {
                 <Controller
                   name={`extra.${itemId}.cost`}
                   control={control}
-      
                   defaultValue={itemData.cost.toFixed(2)}
                   render={({ field }) => (
                     <Input {...field} placeholder="0,00" type="text"  inputMode="decimal"

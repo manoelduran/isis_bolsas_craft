@@ -61,7 +61,7 @@ export const parseCraftCsv = (
     if (currentSection === 'materials') {
       // --- CORREÇÃO NA ORDEM DAS COLUNAS ---
       // O formato correto é: id, name, cost, unit, quantity
-      const [id, name, cost, unit, quantity] = parts;
+      const [id, cost, unit, quantity] = parts;
 
       if (id && id.trim() !== 'id') {
         const costString = cost?.replace(/"/g, '').replace(',', '.') || '0';
