@@ -18,8 +18,8 @@ interface Props {
 
 interface ProcessedItem extends MaterialDetails {
   id: string;
-  quantity: number;
-  subtotal: number;
+  quantity?: number;
+  subtotal?: number;
 }
 
 export function ConfirmationModal({ isOpen, onClose }: Props) {
@@ -31,7 +31,7 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
     generateCraftCsv(data, materialsState);
     onClose();
   };
-
+  const bagQuantity = parseInt(String(watch('bag_quantity'))) || 1;
   const { baseItems, extraItems, baseCostPerBag, extraCost } = useMemo(() => {
     if (!formData) return { baseItems: [], extraItems: [], baseCostPerBag: 0, extraCost: 0 };
 
@@ -50,7 +50,7 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
             const fullItemData = materialsState[categoryKey as 'primary' | 'secondary'][itemId];
             const subtotal = fullItemData.cost * quantityAsNumber;
             runningBaseCost += subtotal;
-            bItems.push({ ...fullItemData, id: itemId, quantity: quantityAsNumber, subtotal });
+            bItems.push({ ...fullItemData, id: itemId, quantity: quantityAsNumber * bagQuantity, subtotal: subtotal * bagQuantity});
           }
         });
       }
@@ -59,21 +59,17 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
     const extraCategoryItems = formData.extra;
     if (extraCategoryItems) {
       Object.entries(extraCategoryItems).forEach(([itemId, itemData]) => {
-        const quantityAsNumber = parseFloat(String(itemData.quantity)) || 0;
-        if (quantityAsNumber > 0) {
           const fullItemData = materialsState.extra[itemId];
           const costAsNumber = parseFloat(String(itemData.cost)) || 0;
-          const subtotal = costAsNumber * quantityAsNumber;
-          runningExtraCost += subtotal;
-          eItems.push({ ...fullItemData, id: itemId,cost: costAsNumber, quantity: quantityAsNumber, subtotal });
-        }
+          runningExtraCost += costAsNumber;
+          eItems.push({ ...fullItemData, id: itemId,cost: costAsNumber * bagQuantity });
       });
     }
 
-    return { baseItems: bItems, extraItems: eItems, baseCostPerBag: runningBaseCost, extraCost: runningExtraCost };
+    return { baseItems: bItems, extraItems: eItems, baseCostPerBag: runningBaseCost, extraCost: runningExtraCost * bagQuantity };
   }, [formData, materialsState]);
 
-  const bagQuantity = parseInt(String(watch('bag_quantity'))) || 1;
+
   const profitPercentage = parseFloat(String(watch('profit_percentage'))) || 0;
   const taxes = parseFloat(String(watch('taxes'))) || 0;
 
@@ -111,9 +107,9 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
                   {baseItems.length > 0 ? baseItems.map(item => (
                     <tr key={item.id} className="border-b">
                       <td className="p-2 font-medium">{item.name}</td>
-                      <td className="text-right p-2">{item.quantity} {item.unit}</td>
+                      <td className="text-right p-2">{item.quantity?.toFixed(2)} {item.unit}</td>
                       <td className="text-right p-2">{formatCurrency(item.cost)}</td>
-                      <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal)}</td>
+                      <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal as number)}</td>
                     </tr>
                   )) : <tr><td colSpan={4} className="text-center p-4 text-muted-foreground">Nenhum material principal/secundário adicionado.</td></tr>}
                 </tbody>
@@ -127,18 +123,18 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
                 <thead>
                   <tr className="border-b">
                     <th className="text-left p-2">Item</th>
-                    <th className="text-right p-2">Quantidade</th>
-                    <th className="text-right p-2">Custo Unitário</th>
-                    <th className="text-right p-2">Subtotal</th>
+                    {/* <th className="text-right p-2">Quantidade</th> */}
+                    <th className="text-right p-2">Custo</th>
+                    {/* <th className="text-right p-2">Subtotal</th> */}
                   </tr>
                 </thead>
                 <tbody>
                   {extraItems.length > 0 ? extraItems.map(item => (
                     <tr key={item.id} className="border-b">
                       <td className="p-2 font-medium">{item.name}</td>
-                      <td className="text-right p-2">{item.quantity} {item.unit}</td>
+                      {/* <td className="text-right p-2">{item.quantity} {item.unit}</td> */}
                       <td className="text-right p-2">{formatCurrency(item.cost)}</td>
-                      <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal)}</td>
+                      {/* <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal)}</td> */}
                     </tr>
                   )) : <tr><td colSpan={4} className="text-center p-4 text-muted-foreground">Nenhum custo extra adicionado.</td></tr>}
                 </tbody>

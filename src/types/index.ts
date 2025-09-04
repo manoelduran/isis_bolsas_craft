@@ -19,5 +19,5 @@ export interface BagForm {
   primary: Record<string, { quantity: string | number; }>;
   created_at: Date;
   secondary: Record<string, { quantity: string | number; }>;
-  extra: Record<string, { quantity: string | number; cost: string | number; }>;
+  extra: Record<string, { cost: string | number; }>;
 }

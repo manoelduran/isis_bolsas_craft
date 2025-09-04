@@ -3,7 +3,7 @@ import { useFormContext, Controller } from 'react-hook-form';
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useRawMaterials } from '@/hooks/useRawMaterials';
-import { formatCurrency } from '@/lib/utils';
+// import { formatCurrency } from '@/lib/utils';
 import type { BagForm } from '@/types';
 
 export const ExtrasTable = () => {
@@ -20,10 +20,9 @@ export const ExtrasTable = () => {
     console.log("Custo da Costura:", costuraCost, costuraQuantity);
   useEffect(() => {
     const costuraCostAsNumber = parseFloat(String(costuraCost)) || 0;
-    const costuraQuantityAsNumber = parseFloat(String(costuraQuantity)) || 0;
-    const commissionValue = costuraCostAsNumber * costuraQuantityAsNumber * 0.10;
+    const commissionValue = costuraCostAsNumber  * 0.10;
 
-    setValue('extra.comissaoCostura.quantity', '1');
+    // setValue('extra.comissaoCostura.quantity', '1');
     setValue('extra.comissaoCostura.cost', commissionValue.toFixed(2), {
       shouldValidate: true,
       shouldDirty: true,
@@ -34,25 +33,25 @@ export const ExtrasTable = () => {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[40%]">Item Extra</TableHead>
-          <TableHead>Quantidade</TableHead>
+          <TableHead className="w-[60%]">Item Extra</TableHead>
+          {/* <TableHead>Quantidade</TableHead> */}
           <TableHead>Custo (R$)</TableHead>
-          <TableHead className="text-right">Subtotal</TableHead>
+          {/* <TableHead className="text-right">Subtotal</TableHead> */}
         </TableRow>
       </TableHeader>
       <TableBody>
         {Object.entries(extraItems).map(([itemId, itemData]) => {
 
-          const quantity = parseFloat(String(watch(`extra.${itemId}.quantity`))) || 0;
-          const cost = parseFloat(String(watch(`extra.${itemId}.cost`))) || 0;
-          const subtotal = quantity * cost;
+        //   const quantity = parseFloat(String(watch(`extra.${itemId}.quantity`))) || 0;
+        //   const cost = parseFloat(String(watch(`extra.${itemId}.cost`))) || 0;
+        //   const subtotal = quantity * cost;
 
           const isCommissionField = itemId === 'comissaoCostura';
 
           return (
             <TableRow key={itemId}>
               <TableCell className="font-medium">{itemData.name}</TableCell>
-              <TableCell>
+              {/* <TableCell>
                 <Controller
                   name={`extra.${itemId}.quantity`}
                   control={control}
@@ -68,14 +67,15 @@ export const ExtrasTable = () => {
                     />
                   )}
                 />
-              </TableCell>
+              </TableCell> */}
               <TableCell>
                 <Controller
                   name={`extra.${itemId}.cost`}
                   control={control}
+      
                   defaultValue={itemData.cost.toFixed(2)}
                   render={({ field }) => (
-                    <Input {...field} placeholder="0,00" type="text" inputMode="decimal"
+                    <Input {...field} placeholder="0,00" type="text"  inputMode="decimal"
                       readOnly={isCommissionField}
                       className={isCommissionField ? 'bg-muted/50' : ''}
                       onChange={(e) => {
@@ -86,9 +86,9 @@ export const ExtrasTable = () => {
                   )}
                 />
               </TableCell>
-              <TableCell className="text-right font-semibold">
+              {/* <TableCell className="text-right font-semibold">
                 {formatCurrency(subtotal)}
-              </TableCell>
+              </TableCell> */}
             </TableRow>
           );
         })}
