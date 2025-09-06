@@ -23,7 +23,7 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
             id: itemId,
             name: staticItemData.name,
             cost: staticItemData.cost,
-            quantity: perBagQuantity * bagQuantity,
+            quantity: perBagQuantity,
             unit: staticItemData.unit,
           });
         }
@@ -34,8 +34,7 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
   const extraCategoryItems = formData.extra;
   if (extraCategoryItems) {
     Object.entries(extraCategoryItems).forEach(([itemId, itemData]) => {
-      const costValue = parseFloat(String(itemData.cost)) || 0;
-      const costAsNumber = costValue * bagQuantity;
+      const costAsNumber = parseFloat(String(itemData.cost)) || 0;
       if (costAsNumber > 0) {
         const staticItemData = materialsState.extra[itemId];
 
@@ -52,7 +51,8 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
   }
 
   const totalMaterialCost = baseCostPerBag * bagQuantity;
-  const grandTotalCost = totalMaterialCost + extraCost;
+  const totalExtraCost = extraCost * bagQuantity;
+  const grandTotalCost = totalMaterialCost + totalExtraCost;
   const profitAsNumber = parseFloat(String(formData.profit_percentage)) || 0;
   const taxesAsNumber = parseFloat(String(formData.taxes)) || 0;
   const profitAmount = grandTotalCost * (profitAsNumber / 100);
