@@ -5,7 +5,7 @@ import type { MaterialsState } from '@/types';
 
 interface RawMaterialContextType {
   materialsState: MaterialsState;
-  updateMaterialCosts: (costs: { id: string; cost: number; unit?: string }[]) => void;
+  updateMaterialCosts: (costs: { id: string; cost: number; }[]) => void;
   areCostsLoaded: boolean;
 }
 
@@ -20,24 +20,8 @@ export const RawMaterialProvider = ({ children }: { children: ReactNode }) => {
     );
   }, [materialsState]);
 
-  // const updateMaterialCosts = (costs: { id: string; cost: number; unit?: string }[]) => {
-  //   const costMap = new Map(costs.map(c => [c.id, { cost: c.cost, unit: c.unit }]));
-
-  //   const newState = produce(materialsState, draft => {
-  //     costMap.forEach(({ cost, unit }, id) => {
-  //       for (const category of Object.keys(draft) as Array<keyof MaterialsState>) {
-  //         if (draft[category][id]) {
-  //           draft[category][id].cost = cost;
-  //           if (unit) draft[category][id].unit = unit;
-  //         }
-  //       }
-  //     });
-  //   });
-  //   setMaterialsState(newState);
-  // };
-
-   const updateMaterialCosts = (costs: { id: string; cost: number; unit?: string }[]) => {
-    const costMap = new Map(costs.map(c => [c.id, { cost: c.cost, unit: c.unit }]));
+   const updateMaterialCosts = (costs: { id: string; cost: number; }[]) => {
+    const costMap = new Map(costs.map(c => [c.id, { cost: c.cost }]));
 
     const newState = produce(materialsState, draft => {
 
@@ -50,9 +34,6 @@ export const RawMaterialProvider = ({ children }: { children: ReactNode }) => {
           if (dataFromFile) {
 
             draft[categoryKey][itemId].cost = dataFromFile.cost;
-            if (dataFromFile.unit) {
-              draft[categoryKey][itemId].unit = dataFromFile.unit;
-            }
           } else {
 
             if (draft[categoryKey][itemId].cost <= 0) {

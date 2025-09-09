@@ -8,11 +8,11 @@ import Papa from 'papaparse';
 import { useRawMaterials } from '@/hooks/useRawMaterials';
 
 interface Props {
-  onFullCraftLoad: (data: { 
-    bagFormData: Partial<BagForm>, 
-    costList: { id: string, cost: number, unit: string }[] 
+  onFullCraftLoad: (data: {
+    bagFormData: Partial<BagForm>,
+    costList: { id: string, cost: number }[]
   }) => void;
-  onCostListLoad: (costs: { id: string; cost: number; unit?: string }[]) => void;
+  onCostListLoad: (costs: { id: string; cost: number }[]) => void;
 }
 
 export function CsvUploader({ onFullCraftLoad, onCostListLoad }: Props) {
@@ -53,7 +53,7 @@ export function CsvUploader({ onFullCraftLoad, onCostListLoad }: Props) {
           onFullCraftLoad(parsedData);
         }
 
-        else if (csvString.trim().toLowerCase().startsWith('id,name,cost')) {
+        else if (csvString.trim().toLowerCase().startsWith('id,name,category,cost')) {
           console.log("Detectado: Template de Custos (para novo craft).");
           Papa.parse(csvString, {
             header: true,
@@ -64,8 +64,7 @@ export function CsvUploader({ onFullCraftLoad, onCostListLoad }: Props) {
                 const costAsNumber = parseFloat(costString);
                 return {
                   id: row.id,
-                  cost: isNaN(costAsNumber) ? 0 : costAsNumber,
-                  unit: row.unit || 'm'
+                  cost: isNaN(costAsNumber) ? 0 : costAsNumber
                 };
               }).filter(item => item.id);
               onCostListLoad(costList);

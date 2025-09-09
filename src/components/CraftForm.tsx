@@ -33,14 +33,14 @@ export const CraftForm = () => {
 
   const handleFullCraftLoad = (data: {
     bagFormData: Partial<BagForm>,
-    costList: { id: string, cost: number, unit: string }[]
+    costList: { id: string, cost: number}[]
   }) => {
     updateMaterialCosts(data.costList);
     methods.reset(data.bagFormData);
     setIsFullCraftLoaded(true);
     console.log("Formulário populado com dados de craft para edição.", data);
   };
-  const handleCostListLoad = (costs: { id: string; cost: number; unit?: string }[]) => {
+  const handleCostListLoad = (costs: { id: string; cost: number}[]) => {
     updateMaterialCosts(costs);
     setIsFullCraftLoaded(false);
     methods.reset();
@@ -136,7 +136,6 @@ export const CraftForm = () => {
               </TabsContent>
               <TabsContent value="extra" className="mt-6">
                 <ExtrasTable />
-                {/* <FormSection category="extra" items={filteredItems.extra} /> */}
               </TabsContent>
             </Tabs>
 

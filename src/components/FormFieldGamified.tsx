@@ -16,15 +16,16 @@ interface Props {
 export const FormFieldGamified = ({ category, itemId, itemData }: Props) => {
   const { control, watch } = useFormContext();
   const quantityFieldName = `${category}.${itemId}.quantity`;
+  console.log("Renderizando FormFieldGamified para:", itemId, itemData);
   const quantity = parseFloat(String(watch(quantityFieldName))) || 0;
-  const subtotal = quantity * itemData.cost;
+  const subtotal = quantity * (itemData.cost as number) ;
 
   return (
     <Card className="flex flex-col justify-between">
       <CardHeader>
         <CardTitle>{itemData.name}</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Custo: {formatCurrency(itemData.cost)} / {itemData.unit}
+          Custo: {formatCurrency(itemData.cost as number)}
         </p>
       </CardHeader>
       <CardContent>
@@ -52,9 +53,6 @@ export const FormFieldGamified = ({ category, itemId, itemData }: Props) => {
                 />
               )}
             />
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-              <span className="text-muted-foreground sm:text-sm">{itemData.unit}</span>
-            </div>
           </div>
         </div>
       </CardContent>

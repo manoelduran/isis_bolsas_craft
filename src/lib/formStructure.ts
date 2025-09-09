@@ -1,28 +1,143 @@
 import type { MaterialsState } from "@/types";
 
 
-const toCamelCase = (name: string): string => {
-  return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-zA-Z0-9]+(.)?/g, (_match, chr) => chr ? chr.toUpperCase() : '').replace(/^\d+/, '');
+const materials = [
+  // Primary
+  {id: 'primary_lona', name: "LONA", category: "primary" },
+  {id: 'primary_mescla', name: "MESCLA", category: "primary" },
+  { id: 'primary_n70Plastif', name: "N.70_PLASTIF", category: "primary" },
+  {id: 'primary_verniz', name: "VERNIZ", category: "primary" },
+  { id: 'primary_facto', name: "FACTO", category: "primary" },
+  {id: 'primary_cristal020', name: "CRISTAL_0.20", category: "primary" },
+  { id: 'primary_begflex', name: "BEGFLEX", category: "primary" },
+  { id: 'primary_corano',name: "CORANO", category: "primary" },
+  {id: 'primary_nAmassado', name: "N.AMASSADO", category: "primary" },
+  { id: 'primary_tactel',name: "TACTEL", category: "primary" },
+  {id: 'primary_cordobaLigt', name: "CORDOBA_LIGT", category: "primary" },
+  {id: 'primary_coranoMescla', name: "CORANO_MESCLA", category: "primary" },
+  {id: 'primary_lnaSucam', name: "LNA_SUCAM", category: "primary" },
+  { id: 'primary_atlanta', name: "ATLANTA", category: "primary" },
+  // Secondary
+  {id: 'secondary_cetim', name: "CETIM", category: "secondary" },
+  {id: 'secondary_resinado', name: "RESINADO", category: "secondary" },
+  {id: 'secondary_leitoso15mm', name: "LEITOSO_15MM", category: "secondary" },
+  {id: 'secondary_espumaPack4mm', name: "ESPUMA_PACK_4MM", category: "secondary" },
+  {id: 'secondary_vivo', name: "VIVO", category: "secondary" },
+  {id: 'secondary_ziperNormal6',name: "ZIPER_NORMAL_6", category: "secondary" },
+  {id: 'secondary_cursorNormal6', name: "CURSOR_NORMAL_6", category: "secondary" },
+  {id: 'secondary_fita030Ca', name: "FITA_0.30_CA", category: "secondary" },
+  {id: 'secondary_coranoBb', name: "Corano_BB", category: "secondary" },
+  {id: 'secondary_alkelin', name: "ALKELIN", category: "secondary" },
+  { id: 'secondary_verniz', name: "VERNIZ", category: "secondary" },
+  {id: 'secondary_naylon600', name: "NAYLON_600", category: "secondary" },
+  {id: 'secondary_cristal020', name: "CRISTAL_0.20", category: "secondary" },
+  {id: 'secondary_cristal030', name: "CRISTAL_0.30", category: "secondary" },
+  {id: 'secondary_nylon70', name: "NYLON_70", category: "secondary" },
+  {id: 'secondary_marcelha', name: "MARCELHA", category: "secondary" },
+  {id: 'secondary_facto', name: "FACTO", category: "secondary" },
+  {id: 'secondary_telaFelpsOuroPta', name: "TELA_FELPS_OURO_PTA", category: "secondary" },
+  {id: 'secondary_telaFelpsCores', name: "TELA_FELPS_CORES", category: "secondary" },
+  {id: 'secondary_box12', name: "BOX_1.2", category: "secondary" },
+  { id: 'secondary_perugia', name: "PERUGIA", category: "secondary" },
+  { id: 'secondary_tnt60',name: "TNT_60", category: "secondary" },
+  {id: 'secondary_feltroBolsasNiver', name: "FELTRO_BOLSAS_NIVER", category: "secondary" },
+  {id: 'secondary_nEspumado', name: "N._ESPUMADO", category: "secondary" },
+  { id: 'secondary_espuma1cm', name: "ESPUMA_1CM", category: "secondary" },
+  {id: 'secondary_newPrime', name: "NEW_PRIME", category: "secondary" },
+  {id: 'secondary_tactel', name: "TACTEL", category: "secondary" },
+  {id: 'secondary_laminadoTermico', name: "LAMINADO_TERMICO", category: "secondary" },
+  {id: 'secondary_eespumaPack6mm', name: "ESPUMA_PACK_6MM", category: "secondary" },
+  {id: 'secondary_estaguete', name: "ESTAGUETE", category: "secondary" },
+  {id: 'secondary_zipperN3', name: "ZIPPER_N_3", category: "secondary" },
+  {id: 'secondary_ziperNormal8', name: "ZIPER_NORMAL_8", category: "secondary" },
+  {id: 'secondary_cursorNormal8', name: "CURSOR_NORMAL_8", category: "secondary" },
+  {id: 'secondary_cursorN3', name: "CURSOR_N_3", category: "secondary" },
+  {id: 'secondary_cursorEspecial', name: "CURSOR_ESPECIAL", category: "secondary" },
+  {id: 'secondary_fitaSilicone', name: "FITA_SILICONE", category: "secondary" },
+  {id: 'secondary_fita030Cbr', name: "FITA_0.30_CBR", category: "secondary" },
+  {id: 'secondary_fita025',  name: "FITA_0.25", category: "secondary" },
+  {id: 'secondary_fita040', name: "FITA_0.40", category: "secondary" },
+  {id: 'secondary_fita30Alg', name: "FITA_30_ALG", category: "secondary" },
+  {id: 'secondary_fita40Alg', name: "FITA_40_ALG", category: "secondary" },
+  {id: 'secondary_telaTuli', name: "TELA_TULI", category: "secondary" },
+  {id: 'secondary_telaAerada', name: "TELA_AERADA", category: "secondary" },
+  {id: 'secondary_cravoPlastico', name: "CRAVO_PLASTICO", category: "secondary" },
+  {id: 'secondary_regMetal025mm', name: "REG._METAL_0.25MM", category: "secondary" },
+  {id: 'secondary_regMetal030mm', name: "REG._METAL_0.30MM", category: "secondary" },
+  { id: 'secondary_regMetal040mm', name: "REG._METAL_0.40MM", category: "secondary" },
+  {id: 'secondary_regPlas025mm', name: "REG._PLAS_0.25MM", category: "secondary" },
+  {id: 'secondary_regPlas030mm', name: "REG._PLAS_0.30MM", category: "secondary" },
+  {id: 'secondary_regPlas040mm', name: "REG._PLAS_0.40MM", category: "secondary" },
+  {id: 'secondary_passsadorMetal040mm', name: "PASSSADOR_METAL_0.40MM", category: "secondary" },
+  {id: 'secondary_cordao42', name: "CORDAO_4/2", category: "secondary" },
+  {id: 'secondary_cordao52', name: "CORDaO_5/2", category: "secondary" },
+  {id: 'secondary_cordaCruaGrossa', name: "CORDA_CRUA_GROSSA", category: "secondary" },
+  {id: 'secondary_correnteBolinha', name: "CORRENTE_BOLINHA", category: "secondary" },
+  {id: 'secondary_bPressao',  name: "B._PRESSAO", category: "secondary" },
+  {id: 'secondary_bIma', name: "B._IMA", category: "secondary" },
+  {id: 'secondary_botaoPressaoPlastico', name: "BOTAO_PRESSAO_PLASTICO", category: "secondary" },
+  {id: 'secondary_rebitePequeno', name: "REBITE_PEQUENO", category: "secondary" },
+  {id: 'secondary_puchadorDePlastico030mm', name: "PUCHADOR_DE_PLASTICO_0.30MM", category: "secondary" },
+  {id: 'secondary_feiche025', name: "FEICHE_0.25", category: "secondary" },
+  {id: 'secondary_feiche030', name: "FEICHE_0.30", category: "secondary" },
+  {id: 'secondary_feiche040', name: "FEICHE_0.40", category: "secondary" },
+  {id: 'secondary_castelinho030Plas', name: "CASTELINHO_0.30_PLAS", category: "secondary" },
+  {id: 'secondary_trianguloPlastico30mm', name: "TRIANGULO_PLASTICO_30MM", category: "secondary" },
+  {id: 'secondary_trianguloMetal030', name: "TRIANGULO_METAL_0.30", category: "secondary" },
+  {id: 'secondary_mosqTriangolo030Metal', name: "MOSQ.+_TRIANGOLO_0.30_METAL", category: "secondary" },
+  {id: 'secondary_meiaArgolaMetal040Grossa', name: "MEIA_ARGOLA_METAL_0.40_GROSSA", category: "secondary" },
+  {id: 'secondary_meiaArgola030Metal', name: "MEIA_ARGOLA_0.30_METAL", category: "secondary" },
+  {id: 'secondary_meiaArgola025Metal', name: "MEIA_ARGOLA_0.25_METAL", category: "secondary" },
+  {id: 'secondary_ilhosN45', name: "ILHOS_N._45", category: "secondary" },
+  {id: 'secondary_milhosN5Garra', name: "MILHOS_N._5_GARRA", category: "secondary" },
+  {id: 'secondary_mosqPlas030', name: "MOSQ._PLAS_0.30", category: "secondary" },
+  {id: 'secondary_mosq030Lx', name: "MOSQ._0.30_LX", category: "secondary" },
+  {id: 'secondary_mosqChaveiro', name: "MOSQ._CHAVEIRO", category: "secondary" },
+  {id: 'secondary_papelao', name: "PAPELAO", category: "secondary" },
+  {id: 'secondary_peDeMalaPlastico', name: "PE_DE_MALA_/_PLASTICO", category: "secondary" },
+  {id: 'secondary_macaquinhoFocinhoDePorco', name: "MACAQUINHO_FOCINHO_DE_PORCO", category: "secondary" },
+  {id: 'secondary_mangueira5mm7mm', name: "MANGUEIRA_5MM_7MM", category: "secondary" },
+  {id: 'secondary_gorgurao', name: "GORGURAO", category: "secondary" },
+  { id: 'secondary_vies030', name: "VIES_0.30", category: "secondary" },
+  {id: 'secondary_elastico', name: "ELASTICO", category: "secondary" },
+  {id: 'secondary_velcro38m', name: "VELCRO_38M", category: "secondary" },
+  { id: 'secondary_velcro16m', name: "VELCRO_16M", category: "secondary" },
+  {id: 'secondary_ombreira40mm', name: "OMBREIRA_40MM", category: "secondary" },
+  {id: 'secondary_fibraVirgem',  name: "FIBRA_VIRGEM", category: "secondary" },
+  {id: 'secondary_carrinhoPlastico', name: "CARRINHO_PLASTICO", category: "secondary" },
+  {id: 'secondary_sublimacaoGrandePequena', name: "SUBLIMAÇAO_/_GRANDE_/_PEQUENA", category: "secondary" },
+  // Extra
+    {id: 'extra_etiqueta', name: "ETIQUETA", category: "extra" },
+  {id: 'extra_embalagem', name: "EMBALAGEM", category: "extra" },
+  { id: 'extra_linha', name: "LINHA", category: "extra" },
+  {id: 'extra_pintura', name: "PINTURA", category: "extra" },
+  { id: 'extra_comissao', name: "COMISSAO", category: "extra" },
+  {id: 'extra_costura', name: "COSTURA", category: "extra" },
+  {id: 'extra_comissaoCostura', name: "COMISSAO_COSTURA", category: "extra" },
+  {id: 'extra_fgtsFeriasEtc', name: "FGTS_FERIAS_ETC...", category: "extra" },
+  {id: 'extra_salarioFuncionarios', name: "SALARIO_FUNCIONARIOS", category: "extra" },
+  {id: 'extra_despExtras', name: "DESP._EXTRAS", category: "extra" },
+]
+
+const processMasterList = (): MaterialsState => {
+  const state: MaterialsState = {
+    primary: {},
+    secondary: {},
+    extra: {},
 };
 
-const primaryNames = "LONA; MESCLA; N. 70 PLASTIF; VERNIZ; FACTO; CRISTAL 0,20; BEG-FLEX; CORANO; N. AMASSADO; TACTEL; CÓRDOBA LIGT; CORANO / MESCLA; LNA SUCAM; ATLANTA;".split(';').map(s => s.trim());
-const secondaryNames = "CETIM; RESINADO; LEITOSO 15MM; ESPUMA PACK 4mm; VIVO; ZIPER NORMAL 6º; CURSOR NORMAL 6º; FITA-0,30 CA; Corano BB; ALKELIN; VERNIZ; NAYLON 600; CRISTAL 0,20; CRISTAL 0,30; NYLON 70; MARCELHA; FACTO; TELA FELPS OURO-PTA; TELA FELPS CORES; NAYLON 70; BOX 1.2; PERUGIA; TNT 60; TNT 40; FELTRO BOLSAS (Niver); N. ESPUMADO; ESPUMA 1CM; NEW-PRIME; TACTEL; LAMINADO TERMICO; ESPUMA PACK 6mm; VIVO; ESTAGUETE; ZIPPER Nº 3; ZIPER NORMAL 8º; CURSOR NORMAL 8º; CURSOR Nº 3; CURSOR ESPECIAL; FITA SILICONE; FITA 0,30 CBR; FITA-0,25; FITA-0,40; FITA-30 ALG; FITA-40 ALG; TELA TULI; TELA AERADA; CRAVO PLASTICO; REG. METAL 0,25mm; REG. METAL 0,30mm; REG. METAL 0,40mm; REG. PLÁS 0,25mm; REG. PLÁS 0,30mm; REG. PLÁS 0,40mm; PASSSADOR METAL 0,40mm; CORDÃO 4/2; CORDÃO 5/2; CORDA CRUA (GROSSA); CORRENTE_BOLINHA; B. PRESSÃO; B. IMÃ; BOTÃO PRESSÃO PLÁSTICO; REBITE PEQUENO; PUCHADOR DE PLÁSTICO 0,30mm; FECHO 0,25; FEICHE 0,30; FECHE 0,40; CASTELINHO 0,30 PLÁS; TRIÂNGULO PLÁSTICO 30mm; TRIÂNGULO METAL 0,30; MOSQ.+TRIÂNGOLO 0,30 - METAL; MEIA ARGOLA METAL 0,40 (GROSSA); MEIA-ARGOLA 0,30 METAL; MEIA-ARGOLA 0,25 METAL; ILHÓS Nº 45; ILHÓS Nº 5 GARRA; MOSQ. PLÁS 0,30; MOSQ. 0,30 LX; MOSQ. CHAVEIRO; PAPELÃO; PÉ DE MALA / PLÁSTICO; Macaquinho Focinho de porco; MANGUEIRA 5mm 7mm; GORGURÃO; VIÉS 0,30; ELASTICO; VELCO - 38m; VELCRO 16m; OMBREIRA 40mm; FIBRA VIRGEM; CARRINHO PLÁSTICO; SUBLIMAÇÃO / GRANDE / PEQUENA; ETIQUETA".split(';').map(s => s.trim());
-const extraNames = "EMBALAGEM; LINHA; PINTURA; COMISSÃO; COSTURA; COMISSÃO COSTURA; FGTS-FÉRIAS ETC...; SALÁRIO FUNCIONÁRIOS; DESP. EXTRAS".split(';').map(s => s.trim());
-
-
-const createCategory = (names: string[]) => {
-  const category: Record<string, any> = {};
-  names.forEach(name => {
-    const id = toCamelCase(name);
-    if (id && !category[id]) {
-      category[id] = { name, cost: 0, unit: 'un' };
-    }
+  materials.forEach(item => {
+    state[item.category as keyof MaterialsState][item.id] = {
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      cost: 0,
+    };
   });
-  return category;
+
+  return state;
 };
 
-export const initialMaterialsState: MaterialsState = {
-  primary: createCategory(primaryNames),
-  secondary: createCategory(secondaryNames),
-  extra: createCategory(extraNames),
-};
+
+
+export const initialMaterialsState: MaterialsState = processMasterList();

@@ -1,11 +1,11 @@
 import type { BagForm, MaterialsState } from "@/types";
-import { sanitizeForFilename } from "./utils";
+import { sanitizeForFilename, formatMaterialName } from "./utils";
 
 export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsState) => {
 
   let baseCostPerBag = 0;
   let extraCost = 0;
-  const usedMaterials: { id: string, name: string, cost: number, unit: string, quantity: number | string }[] = [];
+  const usedMaterials: { id: string, name: string, category: string, cost: number, quantity: number | string }[] = [];
 
   const bagQuantity = parseInt(String(formData.bag_quantity)) || 1;
 
@@ -16,15 +16,15 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
         const perBagQuantity = parseFloat(String(itemData.quantity)) || 0;
         if (perBagQuantity > 0) {
           const staticItemData = materialsState[categoryKey as 'primary' | 'secondary'][itemId];
-          const subtotalPerBag = staticItemData.cost * perBagQuantity;
+          const subtotalPerBag = staticItemData.cost as number * perBagQuantity;
           baseCostPerBag += subtotalPerBag;
 
           usedMaterials.push({
             id: itemId,
             name: staticItemData.name,
-            cost: staticItemData.cost,
-            quantity: perBagQuantity,
-            unit: staticItemData.unit,
+            category: staticItemData.category as string,
+            cost: staticItemData.cost as number,
+            quantity: perBagQuantity
           });
         }
       });
@@ -42,9 +42,9 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
         usedMaterials.push({
           id: itemId,
           name: staticItemData.name,
+          category: staticItemData.category as string,
           cost: costAsNumber,
-          quantity: '',
-          unit: staticItemData.unit
+          quantity: ''
         });
       }
     });
@@ -67,14 +67,14 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
   rows.push([]);
 
   rows.push(['--- Materiais Utilizados ---']);
-  rows.push(['id', 'name', 'cost', 'quantity', 'unit']);
+  rows.push(['id', 'name','category', 'cost', 'quantity']);
   usedMaterials.forEach(material => {
     rows.push([
       material.id,
-      `"${material.name}"`,
+      `"${formatMaterialName(material.name)}"`,
+      material.category,
       material.cost.toFixed(2),
-      material.quantity,
-      material.unit,
+      material.quantity
     ]);
   });
   rows.push([]);
