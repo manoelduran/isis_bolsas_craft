@@ -36,10 +36,11 @@ export const RawMaterialProvider = ({ children }: { children: ReactNode }) => {
             draft[categoryKey][itemId].cost = dataFromFile.cost;
           } else {
 
-            if (draft[categoryKey][itemId].cost <= 0) {
+            const item = draft[categoryKey][itemId];
+            if (item !== undefined && item.cost !== undefined && item.cost <= 0) {
 
               if (categoryKey === 'primary' || categoryKey === 'secondary') {
-                draft[categoryKey][itemId].cost = 1;
+                item.cost = 1;
               }
 
             }
