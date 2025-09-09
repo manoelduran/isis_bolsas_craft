@@ -54,7 +54,7 @@ export const DimensionCalculator = () => {
           <Calculator className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[600px] p-4 mr-2">
+      <PopoverContent className="w-[600px] p-4 mr-10 mt-2">
         <div className="space-y-4">
           <h4 className="font-medium leading-none">Calculadora de Dimensões</h4>
           <p className="text-sm text-muted-foreground">

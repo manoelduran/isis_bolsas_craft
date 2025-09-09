@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRawMaterials } from '@/hooks/useRawMaterials';
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatMaterialName } from "@/lib/utils";
 import type { BagForm, MaterialDetails } from '@/types';
 import { ScrollArea } from './ui/scroll-area';
 import { generateCraftCsv } from '@/lib/csvGenerator';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@radix-ui/react-tooltip';
 
 interface Props {
   isOpen: boolean;
@@ -50,7 +51,7 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
             const fullItemData = materialsState[categoryKey as 'primary' | 'secondary'][itemId];
             const subtotal = fullItemData.cost as number * quantityAsNumber;
             runningBaseCost += subtotal;
-            bItems.push({ ...fullItemData, id: itemId, quantity: quantityAsNumber * bagQuantity, subtotal: subtotal * bagQuantity});
+            bItems.push({ ...fullItemData, id: itemId, quantity: quantityAsNumber * bagQuantity, subtotal: subtotal * bagQuantity });
           }
         });
       }
@@ -59,10 +60,10 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
     const extraCategoryItems = formData.extra;
     if (extraCategoryItems) {
       Object.entries(extraCategoryItems).forEach(([itemId, itemData]) => {
-          const fullItemData = materialsState.extra[itemId];
-          const costAsNumber = parseFloat(String(itemData.cost)) || 0;
-          runningExtraCost += costAsNumber;
-          eItems.push({ ...fullItemData, id: itemId,cost: costAsNumber * bagQuantity });
+        const fullItemData = materialsState.extra[itemId];
+        const costAsNumber = parseFloat(String(itemData.cost)) || 0;
+        runningExtraCost += costAsNumber;
+        eItems.push({ ...fullItemData, id: itemId, cost: costAsNumber * bagQuantity });
       });
     }
 
@@ -80,7 +81,7 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
   const finalPriceWithTaxes = (costWithProfit * (taxes / 100)) + costWithProfit;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onClose} >
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Resumo Final e Preço</DialogTitle>
@@ -92,8 +93,8 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
             <TabsTrigger value="materials">Materiais da Bolsa</TabsTrigger>
             <TabsTrigger value="extras">Custos Extras</TabsTrigger>
           </TabsList>
-          <TabsContent value="materials" className="mt-4">
-            <ScrollArea className="h-60 w-full rounded-md border p-4">
+          <TabsContent value="materials" className="mt-4 ">
+            <ScrollArea className="h-60 w-full rounded-md border">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
@@ -106,7 +107,18 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
                 <tbody>
                   {baseItems.length > 0 ? baseItems.map(item => (
                     <tr key={item.id} className="border-b">
-                      <td className="p-2 font-medium">{item.name}</td>
+                    <td className="p-2 font-medium">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="block max-w-[180px] truncate">
+                              {formatMaterialName(item.name)}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{formatMaterialName(item.name)}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </td>
                       <td className="text-right p-2">{item.quantity}</td>
                       <td className="text-right p-2">{formatCurrency(item.cost as number)}</td>
                       <td className="text-right p-2 font-semibold">{formatCurrency(item.subtotal as number)}</td>
@@ -180,13 +192,13 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="pr-2 gap-3">
           <Button variant="outline" type="button" onClick={onClose}>Voltar</Button>
           <Button type="button" onClick={handleSubmit(handleFinalSubmit)}>
             Confirmar e Salvar Bolsa
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </Dialog >
   );
 }

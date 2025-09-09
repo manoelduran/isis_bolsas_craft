@@ -2,9 +2,10 @@ import { useFormContext, Controller } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatMaterialName } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import type { MaterialDetails } from '@/types';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 
 interface Props {
@@ -23,7 +24,16 @@ export const FormFieldGamified = ({ category, itemId, itemData }: Props) => {
   return (
     <Card className="flex flex-col justify-between">
       <CardHeader>
-        <CardTitle>{itemData.name}</CardTitle>
+          <Tooltip>
+                          <TooltipTrigger asChild>
+                         
+                             <CardTitle className="block max-w-[180px] truncate">{formatMaterialName(itemData.name)}</CardTitle>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{formatMaterialName(itemData.name)}</p>
+                          </TooltipContent>
+                        </Tooltip>
+       
         <p className="text-sm text-muted-foreground">
           Custo: {formatCurrency(itemData.cost as number)}
         </p>

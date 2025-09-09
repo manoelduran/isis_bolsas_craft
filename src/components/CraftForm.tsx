@@ -118,7 +118,7 @@ export const CraftForm = () => {
                 <TabsTrigger value="secondary">Secundários</TabsTrigger>
                 <TabsTrigger value="extra">Extras</TabsTrigger>
               </TabsList>
-              <div className="mt-4">
+              <div className="mt-4 max-w-[400px]">
                 {activeTab !== 'extra' && (
                   <Input
                     type="text"
