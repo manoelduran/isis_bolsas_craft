@@ -15,10 +15,6 @@ export const parseCraftCsv = (
 
   const costList: { id: string, cost: number }[] = [];
 
-  const primaryIds = new Set(Object.keys(materialsState.primary));
-  const secondaryIds = new Set(Object.keys(materialsState.secondary));
-  const extraIds = new Set(Object.keys(materialsState.extra));
-
   let currentSection: 'meta' | 'materials' | 'summary' | null = 'meta';
 
   lines.forEach(line => {
@@ -57,12 +53,11 @@ export const parseCraftCsv = (
 
     if (currentSection === 'materials') {
 
-      const [id, name, category, cost, quantity] = parts;
+      const [id, , category, cost, quantity] = parts;
 
       if (id && id.trim() !== 'id') {
         const trimmedId = id.trim();
         const categoryValue = category?.replace(/"/g, '').trim() as keyof MaterialsState;
-        // const costString = cost?.replace(/"/g, '').replace(',', '.') || '0';
         const costAsNumber = parseFloat(cost);
 
         const quantityValue = quantity?.replace(/"/g, '').trim() || '0';
