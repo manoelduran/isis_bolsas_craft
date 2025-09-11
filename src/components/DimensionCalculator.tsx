@@ -50,7 +50,7 @@ export const DimensionCalculator = () => {
   return (
     <Popover >
       <PopoverTrigger asChild>
-        <Button variant="outline" size="icon"  aria-label="Abrir calculadora de dimensões">
+        <Button variant="outline" size="icon" className='cursor-pointer'  aria-label="Abrir calculadora de dimensões">
           <Calculator className="h-4 w-4" />
         </Button>
       </PopoverTrigger>

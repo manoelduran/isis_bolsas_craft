@@ -4,7 +4,7 @@ export const parseCraftCsv = (
   csvString: string,
   materialsState: MaterialsState
 ): { bagFormData: Partial<BagForm>, costList: { id: string, cost: number }[] } => {
- console.log("CSV recebido para parsing:", csvString, materialsState);
+ console.log("CSV recebido para parsing:", materialsState);
   const lines = csvString.split('\n').map(line => line.trim().replace(/\r/g, ""));
 
   const parsedData: Partial<BagForm> = {
@@ -85,6 +85,6 @@ export const parseCraftCsv = (
       }
     }
   });
-  console.log("Dados do formulário parseados:", parsedData, costList);
+
   return { bagFormData: parsedData, costList };
 };

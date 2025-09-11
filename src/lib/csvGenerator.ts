@@ -1,4 +1,5 @@
 import type { BagForm, MaterialsState } from "@/types";
+import { toast } from "sonner";
 import { sanitizeForFilename, formatMaterialName, downloadCsvLocally, findOrCreateFolder } from "./utils";
 
 export const generateCraftCsv = async (formData: BagForm, materialsState: MaterialsState, accessToken: string) => {
@@ -67,7 +68,7 @@ export const generateCraftCsv = async (formData: BagForm, materialsState: Materi
   rows.push([]);
 
   rows.push(['--- Materiais Utilizados ---']);
-  rows.push(['id', 'name','category', 'cost', 'quantity']);
+  rows.push(['id', 'name', 'category', 'cost', 'quantity']);
   usedMaterials.forEach(material => {
     rows.push([
       material.id,
@@ -92,8 +93,10 @@ export const generateCraftCsv = async (formData: BagForm, materialsState: Materi
   const sanitizedDimensions = (formData.dimensions || 'sem_dimensoes').replace(/\s*x\s*/g, '_').replace(/[^a-z0-9_]/g, '');
   const filename = `${sanitizedStyle}_${sanitizedDimensions}.csv`;
 
-    if (!accessToken) {
-    alert("Login não detectado. O arquivo será baixado localmente.");
+  if (!accessToken) {
+    toast.warning("Login não detectado", {
+      description: "O arquivo será baixado localmente.",
+    });
     downloadCsvLocally(csvContent, filename);
     return;
   }
@@ -125,10 +128,15 @@ export const generateCraftCsv = async (formData: BagForm, materialsState: Materi
     if (!response.ok) throw new Error('Falha no upload para o Google Drive.');
 
     await response.json();
-
+    toast.success("Bolsa salva com sucesso!", {
+      description: `O arquivo "${filename}" foi enviado para a pasta correta no seu Google Drive.`,
+      duration: 5000,
+    });
   } catch (error) {
     console.error('Erro ao salvar no Google Drive:', error);
-    alert('Ocorreu um erro ao salvar no Drive. O arquivo será baixado localmente como alternativa.');
+    toast.error("Falha ao salvar no Drive", {
+      description: "O arquivo será baixado localmente como alternativa.",
+    });
     downloadCsvLocally(csvContent, filename);
   }
 };

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useFormContext, Controller } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 
 interface Props {
   isOpen: boolean;
+  setIsSaving: React.Dispatch<React.SetStateAction<boolean>>;
   onClose: () => void;
 }
 
@@ -24,15 +25,20 @@ interface ProcessedItem extends MaterialDetails {
   subtotal?: number;
 }
 
-export function ConfirmationModal({ isOpen, onClose }: Props) {
+export function ConfirmationModal({ isOpen, onClose, setIsSaving }: Props) {
   const { accessToken } = useAuth();
   const { watch, control, handleSubmit } = useFormContext<BagForm>();
   const { materialsState } = useRawMaterials();
   const formData = watch();
 
-  const handleFinalSubmit = (data: BagForm) => {
-    generateCraftCsv(data, materialsState, accessToken as string);
-    onClose();
+  const handleFinalSubmit = async (data: BagForm) => {
+    try {
+      setIsSaving(true);
+     await generateCraftCsv(data, materialsState, accessToken as string);
+    } finally {
+      setIsSaving(false);
+      onClose();
+    }
   };
   const bagQuantity = parseInt(String(watch('bag_quantity'))) || 1;
   const { baseItems, extraItems, baseCostPerBag, extraCost } = useMemo(() => {
@@ -83,7 +89,7 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
   const finalPriceWithTaxes = (costWithProfit * (taxes / 100)) + costWithProfit;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose} >
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Resumo Final e Preço</DialogTitle>
@@ -92,8 +98,8 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
 
         <Tabs defaultValue="materials" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="materials">Materiais da Bolsa</TabsTrigger>
-            <TabsTrigger value="extras">Custos Extras</TabsTrigger>
+            <TabsTrigger value="materials" className='cursor-pointer'>Materiais da Bolsa</TabsTrigger>
+            <TabsTrigger value="extras" className='cursor-pointer'>Custos Extras</TabsTrigger>
           </TabsList>
           <TabsContent value="materials" className="mt-4 ">
             <ScrollArea className="h-60 w-full rounded-md border">
@@ -195,8 +201,8 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
         </div>
 
         <DialogFooter className="pr-2 gap-3">
-          <Button variant="outline" type="button" onClick={onClose}>Voltar</Button>
-          <Button type="button" onClick={handleSubmit(handleFinalSubmit)}>
+          <Button variant="outline" type="button" className='cursor-pointer' onClick={onClose}>Voltar</Button>
+          <Button type="button" className='cursor-pointer' onClick={handleSubmit(handleFinalSubmit)}>
             Confirmar e Salvar Bolsa
           </Button>
         </DialogFooter>

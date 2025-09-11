@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, type ReactNode } from 'react';
 import { useGoogleLogin, googleLogout, type TokenResponse } from '@react-oauth/google';
+import { toast } from 'sonner';
 
 type AuthContextType = {
   accessToken: string | null;
@@ -15,10 +16,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = useGoogleLogin({
     onSuccess: (tokenResponse: TokenResponse) => {
       setAccessToken(tokenResponse.access_token);
-      console.log("Login bem-sucedido!");
+      toast.success("Login bem-sucedido!", {
+        description: "Agora você pode salvar seus crafts no Google Drive.",
+      });
     },
     onError: () => {
       console.error("Login falhou.");
+      toast.error("Falha no Login", {
+        description: "Não foi possível autenticar com o Google. Tente novamente.",
+      });
     },
     scope: 'https://www.googleapis.com/auth/drive.file',
   });
@@ -26,6 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     googleLogout();
     setAccessToken(null);
+    toast.info("Você saiu da sua conta Google.");
   };
 
   return (

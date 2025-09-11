@@ -48,13 +48,11 @@ export function CsvUploader({ onFullCraftLoad, onCostListLoad }: Props) {
         }
 
         if (csvString.trim().startsWith('style,')) {
-          console.log("Detectado: Arquivo de Craft Completo (para edição).");
           const parsedData = parseCraftCsv(csvString, materialsState);
           onFullCraftLoad(parsedData);
         }
 
         else if (csvString.trim().toLowerCase().startsWith('id,name,category,cost')) {
-          console.log("Detectado: Template de Custos (para novo craft).");
           Papa.parse(csvString, {
             header: true,
             skipEmptyLines: true,
@@ -93,7 +91,7 @@ export function CsvUploader({ onFullCraftLoad, onCostListLoad }: Props) {
   return (
       <div className="grid w-full max-w-sm items-center gap-1.5 p-4 border-2 border-dashed rounded-lg">
           <Label htmlFor="csv-upload">Importar Arquivo de Craft</Label>
-          <Input id="csv-upload" type="file" accept=".csv, .xlsx" onChange={handleFileChange} />
+          <Input id="csv-upload" type="file" accept=".csv, .xlsx" className='cursor-pointer' onChange={handleFileChange} />
           <p className={`text-sm mt-2 ${isError ? 'text-red-500' : 'text-muted-foreground'}`}>
               {message}
           </p>

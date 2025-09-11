@@ -11,14 +11,15 @@ import { ConfirmationModal } from './ConfirmationModal';
 import { CsvUploader } from './shared/CsvUploader';
 import { DimensionInput } from './DimensionInput';
 import type { BagForm, MaterialsState } from '@/types';
-import { generateCraftCsv } from '@/lib/csvGenerator';
 import { DimensionCalculator } from './DimensionCalculator';
-import { useAuth } from '@/context/AuthContext';
 
 
-export const CraftForm = () => {
+export interface CraftFormProps {
+  setIsSaving: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const CraftForm = ({ setIsSaving }: CraftFormProps) => {
   const { materialsState, areCostsLoaded, updateMaterialCosts } = useRawMaterials();
-  const { accessToken } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFullCraftLoaded, setIsFullCraftLoaded] = useState(false);
 
@@ -36,26 +37,29 @@ export const CraftForm = () => {
 
   const handleFullCraftLoad = (data: {
     bagFormData: Partial<BagForm>,
-    costList: { id: string, cost: number}[]
+    costList: { id: string, cost: number }[]
   }) => {
     updateMaterialCosts(data.costList);
     methods.reset(data.bagFormData);
     setIsFullCraftLoaded(true);
-    console.log("Formulário populado com dados de craft para edição.", data);
   };
-  const handleCostListLoad = (costs: { id: string; cost: number}[]) => {
+  const handleCostListLoad = (costs: { id: string; cost: number }[]) => {
     updateMaterialCosts(costs);
     setIsFullCraftLoaded(false);
     methods.reset();
-    console.log("Custos dos materiais atualizados para novo craft.");
   };
 
 
-  const onFinalSubmit = (data: BagForm) => {
-
-    generateCraftCsv(data, materialsState,accessToken as string);
-    setIsModalOpen(false);
-  };
+  // const onFinalSubmit = (data: BagForm) => {
+  //   try {
+  //     setIsSaving(true);
+  //     generateCraftCsv(data, materialsState, accessToken as string);
+  //   } finally {
+  //     console.log("Final submit completed.");
+  //     setIsSaving(false);
+  //     setIsModalOpen(false);
+  //   }
+  // };
 
   const [activeTab, setActiveTab] = useState('primary');
   const [searchTerm, setSearchTerm] = useState('');
@@ -80,7 +84,7 @@ export const CraftForm = () => {
       </section>
       {(areCostsLoaded || isFullCraftLoaded) ? (
         <FormProvider {...methods}>
-          <form onSubmit={methods.handleSubmit(onFinalSubmit)} className="space-y-8">
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
               <div className='w-[300px]'>
@@ -117,9 +121,9 @@ export const CraftForm = () => {
             <h2 className="text-lg font-semibold">2. Matérias-Primas</h2>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="primary">Principal</TabsTrigger>
-                <TabsTrigger value="secondary">Secundários</TabsTrigger>
-                <TabsTrigger value="extra">Extras</TabsTrigger>
+                <TabsTrigger value="primary" className='cursor-pointer'>Principal</TabsTrigger>
+                <TabsTrigger value="secondary" className='cursor-pointer'>Secundários</TabsTrigger>
+                <TabsTrigger value="extra" className='cursor-pointer'>Extras</TabsTrigger>
               </TabsList>
               <div className="mt-4 max-w-[400px]">
                 {activeTab !== 'extra' && (
@@ -143,12 +147,12 @@ export const CraftForm = () => {
             </Tabs>
 
             <div className="flex justify-end">
-              <Button size="lg" type="button" onClick={() => setIsModalOpen(true)}>
+              <Button size="lg" type="button" className='cursor-pointer' onClick={() => setIsModalOpen(true)}>
                 Revisar e Calcular Preço
               </Button>
             </div>
 
-            <ConfirmationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            <ConfirmationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} setIsSaving={setIsSaving} />
           </form>
         </FormProvider>
       ) : (

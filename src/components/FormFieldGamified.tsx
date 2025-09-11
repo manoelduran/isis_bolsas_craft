@@ -17,23 +17,21 @@ interface Props {
 export const FormFieldGamified = ({ category, itemId, itemData }: Props) => {
   const { control, watch } = useFormContext();
   const quantityFieldName = `${category}.${itemId}.quantity`;
-  console.log("Renderizando FormFieldGamified para:", itemId, itemData);
   const quantity = parseFloat(String(watch(quantityFieldName))) || 0;
-  const subtotal = quantity * (itemData.cost as number) ;
+  const subtotal = quantity * (itemData.cost as number);
 
   return (
     <Card className="flex flex-col justify-between">
       <CardHeader>
-          <Tooltip>
-                          <TooltipTrigger asChild>
-                         
-                             <CardTitle className="block max-w-[180px] truncate">{formatMaterialName(itemData.name)}</CardTitle>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{formatMaterialName(itemData.name)}</p>
-                          </TooltipContent>
-                        </Tooltip>
-       
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <CardTitle className="block max-w-[180px] truncate">{formatMaterialName(itemData.name)}</CardTitle>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{formatMaterialName(itemData.name)}</p>
+          </TooltipContent>
+        </Tooltip>
+
         <p className="text-sm text-muted-foreground">
           Custo: {formatCurrency(itemData.cost as number)}
         </p>
@@ -42,7 +40,7 @@ export const FormFieldGamified = ({ category, itemId, itemData }: Props) => {
         <div>
           <Label htmlFor={quantityFieldName}>Quantidade</Label>
           <div className="relative mt-2">
-         <Controller
+            <Controller
               name={quantityFieldName}
               control={control}
               defaultValue={"0"}

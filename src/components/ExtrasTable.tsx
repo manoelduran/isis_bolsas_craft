@@ -10,13 +10,11 @@ export const ExtrasTable = () => {
   const { watch, control, setValue } = useFormContext<BagForm>();
 
   const { materialsState } = useRawMaterials();
-  console.log("materialsState no ExtrasTable:", materialsState);
   const extraItems = materialsState.extra;
 
 
   const costuraCost = watch('extra.extra_costura.cost');
 
-    console.log("Custo da Costura:", costuraCost);
   useEffect(() => {
     const costuraCostAsNumber = parseFloat(String(costuraCost)) || 0;
     const commissionValue = costuraCostAsNumber  * 0.10;
