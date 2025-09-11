@@ -11,6 +11,7 @@ import type { BagForm, MaterialDetails } from '@/types';
 import { ScrollArea } from './ui/scroll-area';
 import { generateCraftCsv } from '@/lib/csvGenerator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@radix-ui/react-tooltip';
+import { useAuth } from '@/context/AuthContext';
 
 interface Props {
   isOpen: boolean;
@@ -24,12 +25,13 @@ interface ProcessedItem extends MaterialDetails {
 }
 
 export function ConfirmationModal({ isOpen, onClose }: Props) {
+  const { accessToken } = useAuth();
   const { watch, control, handleSubmit } = useFormContext<BagForm>();
   const { materialsState } = useRawMaterials();
   const formData = watch();
 
   const handleFinalSubmit = (data: BagForm) => {
-    generateCraftCsv(data, materialsState);
+    generateCraftCsv(data, materialsState, accessToken as string);
     onClose();
   };
   const bagQuantity = parseInt(String(watch('bag_quantity'))) || 1;
@@ -107,7 +109,7 @@ export function ConfirmationModal({ isOpen, onClose }: Props) {
                 <tbody>
                   {baseItems.length > 0 ? baseItems.map(item => (
                     <tr key={item.id} className="border-b">
-                    <td className="p-2 font-medium">
+                      <td className="p-2 font-medium">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="block max-w-[180px] truncate">

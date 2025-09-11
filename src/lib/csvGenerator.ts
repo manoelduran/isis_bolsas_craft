@@ -1,7 +1,7 @@
 import type { BagForm, MaterialsState } from "@/types";
-import { sanitizeForFilename, formatMaterialName } from "./utils";
+import { sanitizeForFilename, formatMaterialName, downloadCsvLocally, findOrCreateFolder } from "./utils";
 
-export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsState) => {
+export const generateCraftCsv = async (formData: BagForm, materialsState: MaterialsState, accessToken: string) => {
 
   let baseCostPerBag = 0;
   let extraCost = 0;
@@ -88,15 +88,47 @@ export const generateCraftCsv = (formData: BagForm, materialsState: MaterialsSta
   rows.push(['preco_final_com_imposto', finalPriceWithTaxes.toFixed(2)]);
 
   const csvContent = rows.map(e => e.join(",")).join("\n");
-  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
   const sanitizedStyle = sanitizeForFilename(formData.style || 'bolsa_sem_nome');
   const sanitizedDimensions = (formData.dimensions || 'sem_dimensoes').replace(/\s*x\s*/g, '_').replace(/[^a-z0-9_]/g, '');
   const filename = `${sanitizedStyle}_${sanitizedDimensions}.csv`;
-  link.setAttribute("href", url);
-  link.setAttribute("download", filename);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+
+    if (!accessToken) {
+    alert("Login não detectado. O arquivo será baixado localmente.");
+    downloadCsvLocally(csvContent, filename);
+    return;
+  }
+
+
+
+  try {
+    const date = new Date(formData.created_at);
+    const year = date.getFullYear().toString();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Mês de 0-11 para 1-12
+    const day = date.getDate().toString().padStart(2, '0');
+
+    const rootFolderId = await findOrCreateFolder('bolsas', 'root', accessToken);
+    const yearFolderId = await findOrCreateFolder(year, rootFolderId, accessToken);
+    const monthFolderId = await findOrCreateFolder(month, yearFolderId, accessToken);
+    const dayFolderId = await findOrCreateFolder(day, monthFolderId, accessToken);
+
+    const metadata = { name: filename, parents: [dayFolderId] };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' }));
+
+    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${accessToken}` },
+      body: form,
+    });
+
+    if (!response.ok) throw new Error('Falha no upload para o Google Drive.');
+
+    await response.json();
+
+  } catch (error) {
+    console.error('Erro ao salvar no Google Drive:', error);
+    alert('Ocorreu um erro ao salvar no Drive. O arquivo será baixado localmente como alternativa.');
+    downloadCsvLocally(csvContent, filename);
+  }
 };

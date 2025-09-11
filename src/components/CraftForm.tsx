@@ -13,9 +13,12 @@ import { DimensionInput } from './DimensionInput';
 import type { BagForm, MaterialsState } from '@/types';
 import { generateCraftCsv } from '@/lib/csvGenerator';
 import { DimensionCalculator } from './DimensionCalculator';
+import { useAuth } from '@/context/AuthContext';
+
 
 export const CraftForm = () => {
   const { materialsState, areCostsLoaded, updateMaterialCosts } = useRawMaterials();
+  const { accessToken } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFullCraftLoaded, setIsFullCraftLoaded] = useState(false);
 
@@ -50,7 +53,7 @@ export const CraftForm = () => {
 
   const onFinalSubmit = (data: BagForm) => {
 
-    generateCraftCsv(data, materialsState);
+    generateCraftCsv(data, materialsState,accessToken as string);
     setIsModalOpen(false);
   };
 
