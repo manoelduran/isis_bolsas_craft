@@ -12,7 +12,7 @@ export const CraftPage = () => {
   }
   return (
     <div className="container mx-auto p-4 md:p-8">
-      {!accessToken ? (
+      {accessToken ? (
         <div>
           <header className="flex items-center justify-between mb-8 w-full">
             <div className="text-left">
