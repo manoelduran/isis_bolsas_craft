@@ -12,6 +12,7 @@ import { CsvUploader } from './shared/CsvUploader';
 import { DimensionInput } from './DimensionInput';
 import type { BagForm, MaterialsState } from '@/types';
 import { DimensionCalculator } from './DimensionCalculator';
+import { Textarea } from './ui/textarea';
 
 
 export interface CraftFormProps {
@@ -31,6 +32,7 @@ export const CraftForm = ({ setIsSaving }: CraftFormProps) => {
       profit_percentage: 0,
       taxes: 0,
       created_at: new Date(),
+      observation: '',
 
     }
   });
@@ -48,18 +50,6 @@ export const CraftForm = ({ setIsSaving }: CraftFormProps) => {
     setIsFullCraftLoaded(false);
     methods.reset();
   };
-
-
-  // const onFinalSubmit = (data: BagForm) => {
-  //   try {
-  //     setIsSaving(true);
-  //     generateCraftCsv(data, materialsState, accessToken as string);
-  //   } finally {
-  //     console.log("Final submit completed.");
-  //     setIsSaving(false);
-  //     setIsModalOpen(false);
-  //   }
-  // };
 
   const [activeTab, setActiveTab] = useState('primary');
   const [searchTerm, setSearchTerm] = useState('');
@@ -85,8 +75,7 @@ export const CraftForm = ({ setIsSaving }: CraftFormProps) => {
       {(areCostsLoaded || isFullCraftLoaded) ? (
         <FormProvider {...methods}>
           <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className='w-[300px]'>
                 <Label htmlFor="style">Nome da Bolsa</Label>
                 <Controller
@@ -96,8 +85,17 @@ export const CraftForm = ({ setIsSaving }: CraftFormProps) => {
                     <Input {...field} id="style" type="text" placeholder="Ex: Bolsa Tote de Couro" className="mt-2" />
                   )}
                 />
+                  <div className='mt-3'>
+                       <Label htmlFor="observation">Observação</Label>
+                         <Controller
+                  name="observation"
+                  control={methods.control}
+                  render={({ field }) => (
+                    <Textarea {...field} id="observation" placeholder="Salve alguma observação" className="mt-2"  />
+                  )}
+                />
+                  </div>
               </div>
-
               <div>
                 <Label>Dimensões (cm)</Label>
                 <div className='flex items-center justify-center mt-2 gap-2'>

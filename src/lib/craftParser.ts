@@ -35,7 +35,7 @@ export const parseCraftCsv = (
       const key = parts[0] as keyof BagForm;
       const value = parts.slice(1).join(',').replace(/"/g, '') || '';
 
-      if (key === 'style' || key === 'dimensions' || key === 'bag_quantity') {
+      if (key === 'style' || key === 'dimensions' || key === 'bag_quantity' || key === 'observation') {
         parsedData[key] = value;
       }
 

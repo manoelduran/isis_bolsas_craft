@@ -7,13 +7,12 @@ import { useState } from 'react';
 export const CraftPage = () => {
    const { accessToken, login, logout } = useAuth();
      const [isSaving, setIsSaving] = useState(false);
-      console.log("isSaving", isSaving);
   if(isSaving){
     return <LoadingOverlay isLoading={isSaving} />
   }
   return (
     <div className="container mx-auto p-4 md:p-8">
-      {accessToken ? (
+      {!accessToken ? (
         <div>
           <header className="flex items-center justify-between mb-8 w-full">
             <div className="text-left">

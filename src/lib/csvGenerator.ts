@@ -9,7 +9,7 @@ export const generateCraftCsv = async (formData: BagForm, materialsState: Materi
   const usedMaterials: { id: string, name: string, category: string, cost: number, quantity: number | string }[] = [];
 
   const bagQuantity = parseInt(String(formData.bag_quantity)) || 1;
-
+  const observation = formData.observation;
   ['primary', 'secondary'].forEach(categoryKey => {
     const categoryItems = formData[categoryKey as 'primary' | 'secondary'];
     if (categoryItems) {
@@ -64,6 +64,7 @@ export const generateCraftCsv = async (formData: BagForm, materialsState: Materi
   rows.push(['style', `"${formData.style}"`]);
   rows.push(['dimensions', `"${formData.dimensions}"`]);
   rows.push(['created_at', `"${formData.created_at}"`]);
+  rows.push(['observation', `"${observation}"`]);
   rows.push(['bag_quantity', bagQuantity]);
   rows.push([]);
 

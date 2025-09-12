@@ -19,6 +19,7 @@ export interface BagForm {
   taxes: string | number;
   primary: Record<string, { quantity: string | number; }>;
   created_at: Date;
+  observation: string;
   secondary: Record<string, { quantity: string | number; }>;
   extra: Record<string, { cost: string | number; }>;
 }
